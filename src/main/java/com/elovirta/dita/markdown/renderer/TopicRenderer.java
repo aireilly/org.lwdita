@@ -117,6 +117,21 @@ public class TopicRenderer extends AbstractRenderer {
    */
   private static final Set<String> SECTION_CLASSES_TO_STRIP = Set.of(TOPIC_SECTION.localName, TOPIC_EXAMPLE.localName);
 
+  /**
+   * Default heading titles that map to task section elements without
+   * requiring explicit class attributes.
+   */
+  private static final Map<String, String> DEFAULT_TASK_SECTION_TITLES = Map.of(
+    "prerequisites",
+    TASK_PREREQ.localName,
+    "about this task",
+    TASK_CONTEXT.localName,
+    "verification",
+    TASK_RESULT.localName,
+    "next steps",
+    TASK_POSTREQ.localName
+  );
+
   private static final Map<String, DitaClass> sections = new HashMap<>();
 
   static {
@@ -574,6 +589,9 @@ public class TopicRenderer extends AbstractRenderer {
       if (sectionClassName != null) {
         isSection = true;
         cls = sections.get(sectionClassName);
+      } else if (DEFAULT_TASK_SECTION_TITLES.containsKey(node.getText().toString().trim().toLowerCase())) {
+        isSection = true;
+        cls = TOPIC_SECTION;
       } else {
         isSection = false;
         cls = null;
@@ -600,6 +618,12 @@ public class TopicRenderer extends AbstractRenderer {
       if (!mditaCoreProfile) {
         final Collection<String> classes = new ArrayList<>(header.classes);
         classes.removeAll(SECTION_CLASSES_TO_STRIP);
+        if (Collections.disjoint(classes, DEFAULT_TASK_SECTION_TITLES.values())) {
+          final String defaultClass = DEFAULT_TASK_SECTION_TITLES.get(node.getText().toString().trim().toLowerCase());
+          if (defaultClass != null) {
+            classes.add(defaultClass);
+          }
+        }
         if (!classes.isEmpty()) {
           atts.add("outputclass", String.join(" ", classes));
         }

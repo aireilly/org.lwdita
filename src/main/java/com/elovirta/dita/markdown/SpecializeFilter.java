@@ -253,7 +253,7 @@ public class SpecializeFilter extends XMLFilterImpl {
       case "simpletable":
         if (depth == 5 && (taskState == TaskState.STEP || taskState == TaskState.INFO)) {
           if (taskState == TaskState.INFO) {
-            doEndElement(NULL_NS_URI, TASK_INFO.localName, TASK_INFO.localName);
+            doEndElement(TASK_INFO);
           }
           taskState = TaskState.CHOICETABLE;
           choicetableColumn = 0;
@@ -359,10 +359,10 @@ public class SpecializeFilter extends XMLFilterImpl {
 
   private void closeImplicitSection() throws SAXException {
     if (taskState == TaskState.CONTEXT) {
-      doEndElement(NULL_NS_URI, TASK_CONTEXT.localName, TASK_CONTEXT.localName);
+      doEndElement(TASK_CONTEXT);
       taskState = stepsCompleted ? TaskState.POST_STEPS : TaskState.BODY;
     } else if (taskState == TaskState.RESULT) {
-      doEndElement(NULL_NS_URI, TASK_RESULT.localName, TASK_RESULT.localName);
+      doEndElement(TASK_RESULT);
       taskState = TaskState.POST_STEPS;
     }
   }
