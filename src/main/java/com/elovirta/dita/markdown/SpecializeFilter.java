@@ -43,6 +43,7 @@ public class SpecializeFilter extends XMLFilterImpl {
     SUBSTEP,
     SUBINFO,
     CHOICES,
+    CHOICETABLE,
     CHOICE,
     RESULT,
     POST_STEPS,
@@ -60,6 +61,9 @@ public class SpecializeFilter extends XMLFilterImpl {
   private int depth = 0;
   private TaskState taskState = null;
   private ReferenceState referenceState = null;
+  private boolean stepsCompleted = false;
+  private int choicetableColumn = 0;
+  private boolean inChoicetableHead = false;
 
   private static final Map<String, DitaClass> TASK_SECTIONS = Map.of(
     TASK_PREREQ.localName,
@@ -168,10 +172,14 @@ public class SpecializeFilter extends XMLFilterImpl {
       case "topic":
         renameStartElement(TASK_TASK, atts);
         taskState = null;
+        stepsCompleted = false;
         break;
       case "body":
         taskState = TaskState.BODY;
+        stepsCompleted = false;
         paragraphCountInSubstep = 0;
+        choicetableColumn = 0;
+        inChoicetableHead = false;
         renameStartElement(TASK_TASKBODY, atts);
         break;
       case "section":
@@ -238,7 +246,51 @@ public class SpecializeFilter extends XMLFilterImpl {
           taskState = TaskState.SUBSTEP;
         } else if (taskState == TaskState.CHOICES && depth == 6) {
           renameStartElement(TASK_CHOICE, atts);
-          taskState = TaskState.CHOICE;
+        } else {
+          doStartElement(uri, localName, qName, atts);
+        }
+        break;
+      case "simpletable":
+        if (depth == 5 && (taskState == TaskState.STEP || taskState == TaskState.INFO)) {
+          if (taskState == TaskState.INFO) {
+            doEndElement(NULL_NS_URI, TASK_INFO.localName, TASK_INFO.localName);
+          }
+          taskState = TaskState.CHOICETABLE;
+          choicetableColumn = 0;
+          inChoicetableHead = false;
+          renameStartElement(TASK_CHOICETABLE, atts);
+        } else {
+          doStartElement(uri, localName, qName, atts);
+        }
+        break;
+      case "sthead":
+        if (taskState == TaskState.CHOICETABLE) {
+          inChoicetableHead = true;
+          choicetableColumn = 0;
+          renameStartElement(TASK_CHHEAD, atts);
+        } else {
+          doStartElement(uri, localName, qName, atts);
+        }
+        break;
+      case "strow":
+        if (taskState == TaskState.CHOICETABLE) {
+          inChoicetableHead = false;
+          choicetableColumn = 0;
+          renameStartElement(TASK_CHROW, atts);
+        } else {
+          doStartElement(uri, localName, qName, atts);
+        }
+        break;
+      case "stentry":
+        if (taskState == TaskState.CHOICETABLE) {
+          choicetableColumn++;
+          DitaClass entryClass;
+          if (inChoicetableHead) {
+            entryClass = choicetableColumn == 1 ? TASK_CHOPTIONHD : TASK_CHDESCHD;
+          } else {
+            entryClass = choicetableColumn == 1 ? TASK_CHOPTION : TASK_CHDESC;
+          }
+          renameStartElement(entryClass, atts);
         } else {
           doStartElement(uri, localName, qName, atts);
         }
@@ -307,19 +359,19 @@ public class SpecializeFilter extends XMLFilterImpl {
 
   private void closeImplicitSection() throws SAXException {
     if (taskState == TaskState.CONTEXT) {
-      doEndElement(TASK_CONTEXT);
-      taskState = TaskState.BODY;
+      doEndElement(NULL_NS_URI, TASK_CONTEXT.localName, TASK_CONTEXT.localName);
+      taskState = stepsCompleted ? TaskState.POST_STEPS : TaskState.BODY;
     } else if (taskState == TaskState.RESULT) {
-      doEndElement(TASK_RESULT);
+      doEndElement(NULL_NS_URI, TASK_RESULT.localName, TASK_RESULT.localName);
       taskState = TaskState.POST_STEPS;
     }
   }
 
   private void openImplicitSection() throws SAXException {
-    if (taskState == TaskState.BODY) {
+    if (!stepsCompleted && taskState == TaskState.BODY) {
       doStartElement(TASK_CONTEXT);
       taskState = TaskState.CONTEXT;
-    } else if (taskState == TaskState.POST_STEPS) {
+    } else if (stepsCompleted && taskState == TaskState.POST_STEPS) {
       doStartElement(TASK_RESULT);
       taskState = TaskState.RESULT;
     }
@@ -339,6 +391,7 @@ public class SpecializeFilter extends XMLFilterImpl {
         break;
       case "ol":
         if (depth == DEPTH_IN_BODY) {
+          stepsCompleted = true;
           taskState = TaskState.POST_STEPS;
         } else if (depth == 5 && taskState == TaskState.SUBSTEPS) {
           taskState = TaskState.STEP;
@@ -347,6 +400,7 @@ public class SpecializeFilter extends XMLFilterImpl {
         break;
       case "ul":
         if (depth == DEPTH_IN_BODY) {
+          stepsCompleted = true;
           taskState = TaskState.POST_STEPS;
         } else if (depth == 5 && taskState == TaskState.CHOICES) {
           taskState = TaskState.STEP;
@@ -372,6 +426,20 @@ public class SpecializeFilter extends XMLFilterImpl {
         if (taskState == TaskState.STEP && depth == 4) {
           paragraphCountInStep = 0;
           taskState = TaskState.STEPS;
+        }
+        doEndElement(uri, localName, qName);
+        break;
+      case "simpletable":
+        if (depth == 5 && taskState == TaskState.CHOICETABLE) {
+          taskState = TaskState.STEP;
+          inChoicetableHead = false;
+          choicetableColumn = 0;
+        }
+        doEndElement(uri, localName, qName);
+        break;
+      case "sthead":
+        if (taskState == TaskState.CHOICETABLE) {
+          inChoicetableHead = false;
         }
         doEndElement(uri, localName, qName);
         break;
