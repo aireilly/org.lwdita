@@ -4,7 +4,7 @@
 
   <target name="dita2markdown"
           depends="build-init,
-                   preprocess, 
+                   preprocess,
                    markdown.init,
                    markdown.topic,
                    markdown.map"/>
@@ -69,7 +69,7 @@
       </pipeline>
     </sequential>
   </macrodef>
-  
+
   <!-- Topics -->
 
   <target name="markdown.topic"
@@ -125,7 +125,7 @@
       </pipeline>
     </sequential>
   </macrodef>
-  
+
   <!-- GitBook -->
 
   <target name="dita2markdown_gitbook" depends="markdown_gitbook.init, dita2markdown"/>
@@ -154,6 +154,15 @@
 
   <target name="markdown_github.init">
     <property name="markdown.type" value="github"/>
+  </target>
+
+  <!-- MDX -->
+
+  <target name="dita2mdx" depends="markdown_mdx.init, dita2markdown"/>
+
+  <target name="markdown_mdx.init">
+    <property name="markdown.type" value="mdx"/>
+    <property name="out.ext" value=".mdx"/>
   </target>
 
 </project>
