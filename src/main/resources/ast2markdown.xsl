@@ -46,7 +46,7 @@
     <xsl:value-of select="$linefeed"/>
     <xsl:value-of select="$linefeed"/>
   </xsl:template>
-  
+
   <xsl:template name="ast-attibutes">
     <xsl:if test="@id or @class">
       <xsl:text> {</xsl:text>
@@ -69,7 +69,7 @@
     <xsl:apply-templates select="$lis" mode="ast"/>
     <xsl:if test="not($nested)">
       <xsl:value-of select="$linefeed"/><!-- because last li will not write one -->
-    </xsl:if>  
+    </xsl:if>
   </xsl:template>
 
   <xsl:variable name="default-indent" select="'    '" as="xs:string"/>
@@ -97,7 +97,7 @@
       <xsl:value-of select="$linefeed"/>
     </xsl:if-->
   </xsl:template>
-  
+
   <xsl:template match="definitionlist" mode="ast">
     <xsl:apply-templates mode="ast"/>
   </xsl:template>
@@ -150,14 +150,14 @@
     <xsl:value-of select="$linefeed"/>
     <xsl:value-of select="$linefeed"/>
   </xsl:template>
-  
+
   <xsl:template match="blockquote" mode="ast">
     <xsl:param name="prefix" tunnel="yes" as="xs:string?" select="()"/>
     <xsl:apply-templates mode="ast">
       <xsl:with-param name="prefix" tunnel="yes" select="concat($prefix, '> ')"/>
     </xsl:apply-templates>
   </xsl:template>
-  
+
   <xsl:template name="process-inline-contents">
     <xsl:param name="indent" tunnel="yes" as="xs:string" select="''"/>
     <xsl:param name="prefix" tunnel="yes" as="xs:string?" select="()"/>
@@ -168,7 +168,7 @@
     </xsl:variable>
     <xsl:variable name="idnt" select="if (ancestor-or-self::tablecell) then () else $indent" as="xs:string?"/>
     <xsl:for-each select="tokenize($contents, '\n')">
-      <xsl:value-of select="$idnt"/>  
+      <xsl:value-of select="$idnt"/>
       <xsl:value-of select="$prefix"/>
       <xsl:value-of select="."/>
       <xsl:if test="position() ne last()">
@@ -176,7 +176,7 @@
       </xsl:if>
     </xsl:for-each>
   </xsl:template>
-  
+
   <xsl:template match="table" mode="ast">
     <xsl:param name="indent" tunnel="yes" as="xs:string" select="''"/>
     <xsl:for-each select="thead">
@@ -343,7 +343,7 @@
   </xsl:template>
 
   <!-- Inline -->
-  
+
   <xsl:template match="strong" mode="ast">
     <xsl:param name="escape" as="xs:string?" tunnel="yes"/>
     <xsl:variable name="char" as="xs:string"
@@ -395,7 +395,7 @@
     <xsl:value-of select="@href"/>
     <xsl:text>)</xsl:text>
   </xsl:template>
-  
+
   <xsl:template match="link[empty(@href) and @keyref]" mode="ast">
     <xsl:text>[</xsl:text>
     <xsl:value-of select="@keyref"/>
@@ -414,7 +414,7 @@
     <xsl:apply-templates select="node() except footnote" mode="#current"/>
     <xsl:value-of select="$linefeed"/>
   </xsl:template>
-  
+
   <xsl:template match="image" mode="ast">
     <xsl:text>![</xsl:text>
     <xsl:value-of select="@alt"/>
@@ -433,7 +433,7 @@
       <xsl:value-of select="$linefeed"/>
     </xsl:if>
   </xsl:template>
-  
+
   <xsl:template match="image[empty(@href) and @keyref]" mode="ast">
     <xsl:text>![</xsl:text>
     <xsl:value-of select="@keyref"/>
@@ -443,12 +443,12 @@
   <xsl:template match="span" mode="ast">
     <xsl:apply-templates mode="ast"/>
   </xsl:template>
-  
+
   <xsl:template match="linebreak" mode="ast">
     <xsl:text>  </xsl:text>
     <xsl:value-of select="$linefeed"/>
   </xsl:template>
-  
+
   <xsl:template match="text()" mode="ast">
     <xsl:variable name="regexp" as="xs:string" select="string-join(('[', '*_', '\\`\{}\[\]()#|' , ']'))"/>
     <xsl:analyze-string select="." regex="{$regexp}">
@@ -461,20 +461,20 @@
       </xsl:non-matching-substring>
     </xsl:analyze-string>
   </xsl:template>
-  
+
   <xsl:template match="code/text() |
                        codeblock/text()"
                 mode="ast" priority="10">
     <xsl:value-of select="."/>
   </xsl:template>
-  
+
   <xsl:template match="node()" mode="ast" priority="-10">
     <xsl:message>ERROR: Unsupported AST node <xsl:value-of select="name()"/></xsl:message>
     <xsl:apply-templates mode="ast"/>
   </xsl:template>
-  
+
   <!-- Whitespace cleanup -->
-  
+
   <xsl:template match="text()"
                 mode="ast-clean">
     <xsl:variable name="normalized" select="normalize-space(.)" as="xs:string"/>
@@ -495,7 +495,7 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-  
+
   <xsl:template match="pandoc/text() |
                        div/text() |
                        bulletlist/text() |
@@ -509,12 +509,12 @@
                 mode="ast-clean" priority="10">
     <!--xsl:value-of select="normalize-space(.)"/-->
   </xsl:template>
-  
+
   <xsl:template match="codeblock//text()"
                 mode="ast-clean" priority="20">
     <xsl:value-of select="."/>
   </xsl:template>
-  
+
   <xsl:template match="div[@class = 'p']" mode="ast-clean">
     <xsl:choose>
       <xsl:when test="every $i in node() satisfies ast:is-block($i) and $i/self::*">
@@ -527,16 +527,16 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
- 
+
   <xsl:template match="@* | node()"
                 mode="ast-clean" priority="-10">
     <xsl:copy>
       <xsl:apply-templates select="@* | node()" mode="ast-clean"/>
     </xsl:copy>
   </xsl:template>
-  
+
   <!-- Flatten -->
-  
+
   <xsl:function name="ast:is-container-block" as="xs:boolean">
     <xsl:param name="node" as="node()"/>
     <xsl:sequence select="$node/self::rawblock or
@@ -549,7 +549,7 @@
       $node/self::div or
       $node/self::null"/>
   </xsl:function>
-  
+
   <xsl:function name="ast:is-block" as="xs:boolean">
     <xsl:param name="node" as="node()"/>
     <xsl:sequence select="$node/self::plain or
@@ -567,26 +567,26 @@
       $node/self::footnoteblock or
       $node/self::null"/>
   </xsl:function>
-  
+
   <xsl:template match="@* | node()" mode="flatten" priority="-1000">
     <xsl:copy>
       <xsl:apply-templates select="@* | node()" mode="flatten"/>
     </xsl:copy>
   </xsl:template>
-  
-  
+
+
   <!--xsl:template match="*[contains(@class, ' task/step ') or
                          contains(@class, ' task/substep ')]" mode="flatten" priority="100">
     <xsl:copy>
       <xsl:apply-templates select="@* | *" mode="flatten"/>
     </xsl:copy>
   </xsl:template-->
-  
+
   <xsl:template match="para" mode="flatten" priority="100">
     <xsl:choose>
       <xsl:when test="empty(node())"/>
       <xsl:when test="count(*) eq 1 and
-                      (*[ast:is-container-block(.)]) and 
+                      (*[ast:is-container-block(.)]) and
                       empty(text()[normalize-space(.)])">
         <xsl:apply-templates mode="flatten"/>
       </xsl:when>
@@ -608,7 +608,7 @@
               <para gen="1">
                 <xsl:apply-templates select="$current/@* except $current/@id | current-group()" mode="flatten"/>
               </para>
-            </xsl:otherwise>  
+            </xsl:otherwise>
           </xsl:choose>
         </xsl:for-each-group>
       </xsl:when>
@@ -619,7 +619,7 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-  
+
   <!-- wrapper elements -->
   <xsl:template match="*[ast:is-container-block(.)]" mode="flatten" priority="10">
     <xsl:copy>
@@ -640,7 +640,7 @@
             <para>
               <xsl:apply-templates select="current-group()" mode="flatten"/>
             </para>
-          </xsl:otherwise>  
+          </xsl:otherwise>
         </xsl:choose>
       </xsl:for-each-group>
     </xsl:copy>
@@ -655,10 +655,17 @@
   </xsl:template>
 
   <xsl:template match="map" mode="ast">
+    <xsl:param name="indent" tunnel="yes" as="xs:string" select="''"/>
+    <xsl:if test="ancestor::map">
+      <xsl:text>&#xA;</xsl:text>
+    </xsl:if>
     <xsl:for-each select="entry">
+      <xsl:value-of select="$indent"/>
       <xsl:value-of select="@key"/>
       <xsl:text>: </xsl:text>
-      <xsl:apply-templates mode="#current"/>
+      <xsl:apply-templates mode="#current">
+        <xsl:with-param name="indent" tunnel="yes" select="concat($indent, '  ')"/>
+      </xsl:apply-templates>
       <xsl:text>&#xA;</xsl:text>
     </xsl:for-each>
   </xsl:template>
@@ -671,5 +678,5 @@
     </xsl:for-each>
     <xsl:text>]</xsl:text>
   </xsl:template>
-  
+
 </xsl:stylesheet>
