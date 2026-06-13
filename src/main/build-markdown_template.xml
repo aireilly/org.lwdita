@@ -52,6 +52,7 @@
       <condition property="markdown.toc.output.dir" value="${dita.output.dir}" else="${_dita.map.output.dir}">
         <isset property="inner.transform"/>
       </condition>
+      <property name="args.markdown.toc.file" value="${args.markdown.toc}${out.ext}"/>
       <pipeline message="Convert DITA map to Markdown" taskname="xslt">
         <xslt destdir="${markdown.toc.output.dir}"
               style="${args.markdown.toc.xsl}">
@@ -63,7 +64,7 @@
           <param name="CSSPATH" expression="${user.csspath}" if:set="user.csspath"/>
           <param name="OUTPUTCLASS" expression="${args.markdown.toc.class}" if:set="args.markdown.toc.class"/>
           <params/>
-          <mapper type="merge" to="${args.markdown.toc}${out.ext}"/>
+          <mapper type="merge" to="${args.markdown.toc.file}"/>
           <xmlcatalog refid="dita.catalog"/>
         </xslt>
       </pipeline>
