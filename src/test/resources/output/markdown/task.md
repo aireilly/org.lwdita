@@ -32,4 +32,10 @@ Context
 
 10. head **Command** tail
 
+11. Command
+
+    ```
+    info
+    ```
+
 

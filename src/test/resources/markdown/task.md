@@ -31,3 +31,10 @@ Context
 1.  head **Command**
 
 1.  head **Command** tail
+
+1.  Command
+
+    ```
+    info
+    ```
+    
