@@ -151,7 +151,7 @@ public class SpecializeFilter extends XMLFilterImpl {
       case "ol":
         if (depth == DEPTH_IN_BODY) {
           if (taskState == TaskState.CONTEXT) {
-            doEndElement(uri, TASK_CONTEXT.localName, TASK_CONTEXT.localName);
+            doEndElement(TASK_CONTEXT);
           }
           taskState = TaskState.STEPS;
           renameStartElement(Constants.TASK_STEPS, atts);
@@ -162,7 +162,7 @@ public class SpecializeFilter extends XMLFilterImpl {
       case "ul":
         if (depth == DEPTH_IN_BODY) {
           if (taskState == TaskState.CONTEXT) {
-            doEndElement(uri, TASK_CONTEXT.localName, TASK_CONTEXT.localName);
+            doEndElement(TASK_CONTEXT);
           }
           taskState = TaskState.STEPS;
           renameStartElement(TASK_STEPS_UNORDERED, atts);
@@ -181,15 +181,7 @@ public class SpecializeFilter extends XMLFilterImpl {
       default:
         if (depth == DEPTH_IN_BODY) {
           if (taskState == TaskState.BODY) {
-            AttributesImpl sectionAtts = new AttributesImpl();
-            sectionAtts.addAttribute(
-              NULL_NS_URI,
-              ATTRIBUTE_NAME_CLASS,
-              ATTRIBUTE_NAME_CLASS,
-              "CDATA",
-              TASK_CONTEXT.toString()
-            );
-            doStartElement(uri, TASK_CONTEXT.localName, TASK_CONTEXT.localName, sectionAtts);
+            doStartElement(TASK_CONTEXT);
             taskState = TaskState.CONTEXT;
           }
           doStartElement(uri, localName, qName, atts);
@@ -201,15 +193,7 @@ public class SpecializeFilter extends XMLFilterImpl {
               if (paragraphCountInStep == 1) {
                 renameStartElement(TASK_CMD, atts);
               } else if (paragraphCountInStep == 2 && taskState != TaskState.INFO) {
-                AttributesImpl res = new AttributesImpl(atts);
-                res.addAttribute(
-                  NULL_NS_URI,
-                  ATTRIBUTE_NAME_CLASS,
-                  ATTRIBUTE_NAME_CLASS,
-                  "CDATA",
-                  TASK_INFO.toString()
-                );
-                doStartElement(NULL_NS_URI, TASK_INFO.localName, TASK_INFO.localName, res);
+                doStartElement(TASK_INFO);
                 taskState = TaskState.INFO;
                 doStartElement(uri, localName, qName, atts);
               } else {
@@ -218,15 +202,7 @@ public class SpecializeFilter extends XMLFilterImpl {
               break;
             default:
               if (taskState != TaskState.INFO) {
-                AttributesImpl res = new AttributesImpl(atts);
-                res.addAttribute(
-                  NULL_NS_URI,
-                  ATTRIBUTE_NAME_CLASS,
-                  ATTRIBUTE_NAME_CLASS,
-                  "CDATA",
-                  TASK_INFO.toString()
-                );
-                doStartElement(NULL_NS_URI, TASK_INFO.localName, TASK_INFO.localName, res);
+                doStartElement(TASK_INFO);
                 taskState = TaskState.INFO;
               }
               doStartElement(uri, localName, qName, atts);
@@ -243,13 +219,13 @@ public class SpecializeFilter extends XMLFilterImpl {
       case "body":
         if (taskState == TaskState.CONTEXT) {
           taskState = null;
-          doEndElement(uri, TASK_CONTEXT.localName, TASK_CONTEXT.localName);
+          doEndElement(TASK_CONTEXT);
         }
         doEndElement(uri, localName, qName);
         break;
       case "li":
         if (taskState == TaskState.INFO && depth == 4) {
-          doEndElement(NULL_NS_URI, TASK_INFO.localName, TASK_INFO.localName);
+          doEndElement(TASK_INFO);
           taskState = TaskState.STEP;
         }
         if (taskState == TaskState.STEP && depth == 4) {
@@ -280,20 +256,12 @@ public class SpecializeFilter extends XMLFilterImpl {
             case "section":
               if (referenceState == ReferenceState.SECTION) {
                 referenceState = ReferenceState.BODY;
-                doEndElement(uri, "section", "section");
+                doEndElement(TOPIC_SECTION);
               }
               break;
             default:
               if (referenceState == ReferenceState.BODY) {
-                AttributesImpl sectionAtts = new AttributesImpl();
-                sectionAtts.addAttribute(
-                  NULL_NS_URI,
-                  ATTRIBUTE_NAME_CLASS,
-                  ATTRIBUTE_NAME_CLASS,
-                  "CDATA",
-                  "- topic/section "
-                );
-                doStartElement(uri, TOPIC_SECTION.localName, TOPIC_SECTION.localName, sectionAtts);
+                doStartElement(TOPIC_SECTION);
                 referenceState = ReferenceState.SECTION;
               }
               break;
@@ -310,7 +278,7 @@ public class SpecializeFilter extends XMLFilterImpl {
       case "body":
         if (referenceState == ReferenceState.SECTION) {
           referenceState = null;
-          doEndElement(uri, TOPIC_SECTION.localName, TOPIC_SECTION.localName);
+          doEndElement(TOPIC_SECTION);
         }
         doEndElement(uri, localName, qName);
         break;
@@ -325,10 +293,19 @@ public class SpecializeFilter extends XMLFilterImpl {
     elementStack.push(localName);
   }
 
+  private void doStartElement(DitaClass cls) throws SAXException {
+    AttributesImpl res = createAttributes(cls);
+    doStartElement(NULL_NS_URI, cls.localName, cls.localName, res);
+  }
+
   public void doEndElement(String uri, String localName, String qName) throws SAXException {
     final String l = elementStack.pop();
     //        System.out.printf("</%s = %s>%n", l, localName);
     super.endElement(uri, l, l);
+  }
+
+  private void doEndElement(DitaClass cls) throws SAXException {
+    doEndElement(NULL_NS_URI, cls.localName, cls.localName);
   }
 
   void renameStartElement(DitaClass cls, Attributes atts) throws SAXException {
@@ -365,5 +342,11 @@ public class SpecializeFilter extends XMLFilterImpl {
       return Collections.emptyList();
     }
     return Arrays.asList(outputclass.trim().split("\\s+"));
+  }
+
+  private AttributesImpl createAttributes(DitaClass cls) {
+    AttributesImpl res = new AttributesImpl();
+    res.addAttribute(NULL_NS_URI, ATTRIBUTE_NAME_CLASS, ATTRIBUTE_NAME_CLASS, "CDATA", cls.toString());
+    return res;
   }
 }
