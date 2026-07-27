@@ -53,6 +53,12 @@
       <step class="- topic/li task/step ">
         <cmd class="- topic/ph task/cmd ">head <b class="+ topic/ph hi-d/b ">Command</b> tail</cmd>
       </step>
+      <step class="- topic/li task/step ">
+        <cmd class="- topic/ph task/cmd ">Command</cmd>
+        <info class="- topic/itemgroup task/info ">
+          <codeblock class="+ topic/pre pr-d/codeblock " xml:space="preserve">info</codeblock>
+        </info>
+      </step>
     </steps>
   </taskbody>
 </task>

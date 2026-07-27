@@ -58,6 +58,11 @@
         <p class="- topic/p ">head <b class="+ topic/ph hi-d/b ">Command</b> tail
         </p>
       </li>
+      <li class="- topic/li ">
+        <p class="- topic/p ">Command
+        </p>
+        <pre class="- topic/pre " xml:space="preserve"><tt class="+ topic/ph hi-d/tt ">info</tt></pre>
+      </li>
     </ol>
   </body>
 </topic>

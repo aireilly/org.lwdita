@@ -73,7 +73,12 @@ public class AstToMarkdownTest {
   public void testAst(String name) throws Exception {
     final byte[] act = run("output/ast/" + name + ".xml");
     final byte[] exp = read("output/markdown/" + name + ".md");
-    assertEquals(new String(exp, StandardCharsets.UTF_8), new String(act, StandardCharsets.UTF_8));
+    try {
+      assertEquals(new String(exp, StandardCharsets.UTF_8), new String(act, StandardCharsets.UTF_8));
+    } catch (AssertionError e) {
+      //      Files.write(Paths.get("src/test/resources/output/markdown/" + name + ".md"), act);
+      throw e;
+    }
   }
 
   private byte[] run(final String input) throws Exception {
