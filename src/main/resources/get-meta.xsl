@@ -38,6 +38,12 @@
         <xsl:with-param name="values" select="*[contains(@class, ' topic/resourceid ')]/@appid"/>
         <xsl:with-param name="key" select="'resourceid'"/>
       </xsl:call-template>
+      <xsl:for-each select="*[contains(@class, ' topic/data ')]">
+        <xsl:call-template name="get-value">
+          <xsl:with-param name="values" select="@value"/>
+          <xsl:with-param name="key" select="string(@name)"/>
+        </xsl:call-template>
+      </xsl:for-each>
     </xsl:for-each>
   </xsl:variable>
   <xsl:if test="exists($fields)">
