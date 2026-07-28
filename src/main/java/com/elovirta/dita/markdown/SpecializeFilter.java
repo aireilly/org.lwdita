@@ -36,7 +36,11 @@ public class SpecializeFilter extends XMLFilterImpl {
     STEPS,
     STEP,
     INFO,
+    SUBSTEPS,
+    SUBSTEP,
+    SUBINFO,
     RESULT,
+    POST_STEPS,
   }
 
   private final Type forceType;
@@ -46,9 +50,23 @@ public class SpecializeFilter extends XMLFilterImpl {
    */
   private final Deque<Type> typeStack = new ArrayDeque<>(List.of(Type.TOPIC));
   private int paragraphCountInStep = 0;
+  private int paragraphCountInSubstep = 0;
   private int depth = 0;
   private TaskState taskState = null;
   private ReferenceState referenceState = null;
+
+  private static final Map<String, DitaClass> TASK_SECTIONS = Map.of(
+    TASK_PREREQ.localName,
+    TASK_PREREQ,
+    TASK_CONTEXT.localName,
+    TASK_CONTEXT,
+    TASK_RESULT.localName,
+    TASK_RESULT,
+    TASK_POSTREQ.localName,
+    TASK_POSTREQ,
+    TASK_TASKTROUBLESHOOTING.localName,
+    TASK_TASKTROUBLESHOOTING
+  );
 
   private final Deque<String> elementStack = new ArrayDeque<>();
 
@@ -146,24 +164,44 @@ public class SpecializeFilter extends XMLFilterImpl {
         break;
       case "body":
         taskState = TaskState.BODY;
+        paragraphCountInSubstep = 0;
         renameStartElement(TASK_TASKBODY, atts);
+        break;
+      case "section":
+        if (depth == DEPTH_IN_BODY) {
+          closeImplicitSection();
+          final String outputclass = atts.getValue(ATTRIBUTE_NAME_OUTPUTCLASS);
+          if (outputclass != null) {
+            final DitaClass sectionClass = TASK_SECTIONS.get(outputclass.trim());
+            if (sectionClass != null) {
+              renameStartElement(sectionClass, atts);
+              break;
+            }
+          }
+          openImplicitSection();
+          doStartElement(uri, localName, qName, atts);
+        } else {
+          doStartElement(uri, localName, qName, atts);
+        }
         break;
       case "ol":
         if (depth == DEPTH_IN_BODY) {
-          if (taskState == TaskState.CONTEXT) {
-            doEndElement(TASK_CONTEXT);
-          }
+          closeImplicitSection();
           taskState = TaskState.STEPS;
           renameStartElement(Constants.TASK_STEPS, atts);
+        } else if (depth == 5 && (taskState == TaskState.STEP || taskState == TaskState.INFO)) {
+          if (taskState == TaskState.INFO) {
+            doEndElement(TASK_INFO);
+          }
+          taskState = TaskState.SUBSTEPS;
+          renameStartElement(TASK_SUBSTEPS, atts);
         } else {
           doStartElement(uri, localName, qName, atts);
         }
         break;
       case "ul":
         if (depth == DEPTH_IN_BODY) {
-          if (taskState == TaskState.CONTEXT) {
-            doEndElement(TASK_CONTEXT);
-          }
+          closeImplicitSection();
           taskState = TaskState.STEPS;
           renameStartElement(TASK_STEPS_UNORDERED, atts);
         } else {
@@ -174,6 +212,9 @@ public class SpecializeFilter extends XMLFilterImpl {
         if (taskState == TaskState.STEPS && depth == 4) {
           renameStartElement(TASK_STEP, atts);
           taskState = TaskState.STEP;
+        } else if (taskState == TaskState.SUBSTEPS && depth == 6) {
+          renameStartElement(TASK_SUBSTEP, atts);
+          taskState = TaskState.SUBSTEP;
         } else {
           doStartElement(uri, localName, qName, atts);
         }
@@ -184,6 +225,7 @@ public class SpecializeFilter extends XMLFilterImpl {
             doStartElement(TASK_CONTEXT);
             taskState = TaskState.CONTEXT;
           }
+          openImplicitSection();
           doStartElement(uri, localName, qName, atts);
         } else if ((taskState == TaskState.STEP || taskState == TaskState.INFO) && depth == 5) {
           switch (localName) {
@@ -208,9 +250,54 @@ public class SpecializeFilter extends XMLFilterImpl {
               doStartElement(uri, localName, qName, atts);
               break;
           }
+        } else if ((taskState == TaskState.SUBSTEP || taskState == TaskState.SUBINFO) && depth == 7) {
+          switch (localName) {
+            case "p":
+            case TIGHT_LIST_P:
+              paragraphCountInSubstep++;
+              if (paragraphCountInSubstep == 1) {
+                renameStartElement(TASK_CMD, atts);
+              } else if (paragraphCountInSubstep == 2 && taskState != TaskState.SUBINFO) {
+                AttributesImpl res = createAttributes(TASK_INFO);
+                doStartElement(NULL_NS_URI, TASK_INFO.localName, TASK_INFO.localName, res);
+                taskState = TaskState.SUBINFO;
+                doStartElement(uri, localName, qName, atts);
+              } else {
+                doStartElement(uri, localName, qName, atts);
+              }
+              break;
+            default:
+              if (taskState != TaskState.SUBINFO) {
+                AttributesImpl res = createAttributes(TASK_INFO);
+                doStartElement(NULL_NS_URI, TASK_INFO.localName, TASK_INFO.localName, res);
+                taskState = TaskState.SUBINFO;
+              }
+              doStartElement(uri, localName, qName, atts);
+              break;
+          }
         } else {
           doStartElement(uri, localName, qName, atts);
         }
+    }
+  }
+
+  private void closeImplicitSection() throws SAXException {
+    if (taskState == TaskState.CONTEXT) {
+      doEndElement(TASK_CONTEXT);
+      taskState = TaskState.BODY;
+    } else if (taskState == TaskState.RESULT) {
+      doEndElement(TASK_RESULT);
+      taskState = TaskState.POST_STEPS;
+    }
+  }
+
+  private void openImplicitSection() throws SAXException {
+    if (taskState == TaskState.BODY) {
+      doStartElement(TASK_CONTEXT);
+      taskState = TaskState.CONTEXT;
+    } else if (taskState == TaskState.POST_STEPS) {
+      doStartElement(TASK_RESULT);
+      taskState = TaskState.RESULT;
     }
   }
 
@@ -219,11 +306,36 @@ public class SpecializeFilter extends XMLFilterImpl {
       case "body":
         if (taskState == TaskState.CONTEXT) {
           taskState = null;
-          doEndElement(TASK_CONTEXT);
+          doEndElement(uri, TASK_CONTEXT.localName, TASK_CONTEXT.localName);
+        } else if (taskState == TaskState.RESULT) {
+          taskState = null;
+          doEndElement(uri, TASK_RESULT.localName, TASK_RESULT.localName);
+        }
+        doEndElement(uri, localName, qName);
+        break;
+      case "ol":
+        if (depth == DEPTH_IN_BODY) {
+          taskState = TaskState.POST_STEPS;
+        } else if (depth == 5 && taskState == TaskState.SUBSTEPS) {
+          taskState = TaskState.STEP;
+        }
+        doEndElement(uri, localName, qName);
+        break;
+      case "ul":
+        if (depth == DEPTH_IN_BODY) {
+          taskState = TaskState.STEP;
         }
         doEndElement(uri, localName, qName);
         break;
       case "li":
+        if (taskState == TaskState.SUBINFO && depth == 6) {
+          doEndElement(TASK_INFO);
+          taskState = TaskState.SUBSTEP;
+        }
+        if (taskState == TaskState.SUBSTEP && depth == 6) {
+          paragraphCountInSubstep = 0;
+          taskState = TaskState.SUBSTEPS;
+        }
         if (taskState == TaskState.INFO && depth == 4) {
           doEndElement(TASK_INFO);
           taskState = TaskState.STEP;
