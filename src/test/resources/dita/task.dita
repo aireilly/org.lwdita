@@ -60,5 +60,8 @@
         </info>
       </step>
     </steps>
+    <result class="- topic/section task/result ">
+      <p class="- topic/p ">Result</p>
+    </result>
   </taskbody>
 </task>

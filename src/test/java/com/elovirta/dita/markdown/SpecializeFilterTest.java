@@ -68,6 +68,8 @@ public class SpecializeFilterTest {
       "task_context_with_two_p",
       "task_two_p_in_info",
       "task_inline_in_cmd",
+      "task_result",
+      "task_substeps",
     }
   )
   public void test(String name) throws Exception {
