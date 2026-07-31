@@ -84,6 +84,7 @@ public class MarkdownReaderTest extends AbstractReaderTest {
       "table-width.md",
       "table.md",
       "task.md",
+      "task_choices.md",
       "taskTight.md",
       "taskOneStep.md",
       "testBOM.md",

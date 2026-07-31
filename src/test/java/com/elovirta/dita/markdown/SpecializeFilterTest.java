@@ -63,6 +63,7 @@ public class SpecializeFilterTest {
       "concept",
       "reference",
       "task",
+      "task_choices",
       "task_cmd_with_info",
       "task_context",
       "task_context_with_two_p",
