@@ -12,11 +12,11 @@
         <cmd class="- topic/ph task/cmd ">Command</cmd>
         <info class="- topic/itemgroup task/info ">
           <p class="- topic/p ">Info.</p>
-          <ul class="- topic/ul " outputclass="choices">
-            <li class="- topic/li ">First choice</li>
-            <li class="- topic/li ">Second choice</li>
-          </ul>
         </info>
+        <choices class="- topic/ul task/choices ">
+          <choice class="- topic/li task/choice ">First choice</choice>
+          <choice class="- topic/li task/choice ">Second choice</choice>
+        </choices>
       </step>
     </steps>
     <result class="- topic/section task/result ">
