@@ -67,6 +67,7 @@ public class MDitaReaderExtendedTest extends AbstractReaderTest {
       "table-width.md",
       "table.md",
       "task.md",
+      "task/task_choices.md",
       "taskTight.md",
       "taskOneStep.md",
       "testBOM.md",

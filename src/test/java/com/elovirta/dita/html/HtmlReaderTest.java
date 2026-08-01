@@ -58,6 +58,7 @@ public class HtmlReaderTest extends AbstractReaderTest {
       "table-width.html",
       "table.html",
       "task.html",
+      "task/task_choices.html",
       "taskOneStep.html",
       "ul.html",
       //            "multiple_top_level.html",
