@@ -39,6 +39,8 @@ public class SpecializeFilter extends XMLFilterImpl {
     SUBSTEPS,
     SUBSTEP,
     SUBINFO,
+    CHOICES,
+    CHOICE,
     RESULT,
     POST_STEPS,
   }
@@ -204,6 +206,12 @@ public class SpecializeFilter extends XMLFilterImpl {
           closeImplicitSection();
           taskState = TaskState.STEPS;
           renameStartElement(TASK_STEPS_UNORDERED, atts);
+        } else if (depth == 5 && (taskState == TaskState.STEP || taskState == TaskState.INFO)) {
+          if (taskState == TaskState.INFO) {
+            doEndElement(TASK_INFO);
+          }
+          taskState = TaskState.CHOICES;
+          renameStartElement(TASK_CHOICES, atts);
         } else {
           doStartElement(uri, localName, qName, atts);
         }
@@ -215,6 +223,9 @@ public class SpecializeFilter extends XMLFilterImpl {
         } else if (taskState == TaskState.SUBSTEPS && depth == 6) {
           renameStartElement(TASK_SUBSTEP, atts);
           taskState = TaskState.SUBSTEP;
+        } else if (taskState == TaskState.CHOICES && depth == 6) {
+          renameStartElement(TASK_CHOICE, atts);
+          taskState = TaskState.CHOICE;
         } else {
           doStartElement(uri, localName, qName, atts);
         }
@@ -324,6 +335,8 @@ public class SpecializeFilter extends XMLFilterImpl {
       case "ul":
         if (depth == DEPTH_IN_BODY) {
           taskState = TaskState.STEP;
+        } else if (depth == 5 && taskState == TaskState.CHOICES) {
+          taskState = TaskState.STEP;
         }
         doEndElement(uri, localName, qName);
         break;
@@ -335,6 +348,9 @@ public class SpecializeFilter extends XMLFilterImpl {
         if (taskState == TaskState.SUBSTEP && depth == 6) {
           paragraphCountInSubstep = 0;
           taskState = TaskState.SUBSTEPS;
+        }
+        if (taskState == TaskState.CHOICE && depth == 6) {
+          taskState = TaskState.CHOICES;
         }
         if (taskState == TaskState.INFO && depth == 4) {
           doEndElement(TASK_INFO);

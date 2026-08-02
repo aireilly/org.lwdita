@@ -125,11 +125,9 @@
           <cmd class="- topic/ph task/cmd ">
             <xsl:copy-of select="$head"/>
           </cmd>
-          <xsl:if test="*">
-            <info class="- topic/itemgroup task/info ">
-              <xsl:apply-templates select="$tail" mode="#current"/>
-            </info>  
-          </xsl:if>
+          <xsl:call-template name="step-content">
+            <xsl:with-param name="content" select="$tail"/>
+          </xsl:call-template>
         </xsl:when>
         <xsl:otherwise>
           <xsl:for-each select="$tail[1]">
@@ -137,14 +135,36 @@
               <xsl:apply-templates select="@* except @class | node()" mode="#current"/>
             </cmd>
           </xsl:for-each>
-          <xsl:if test="$tail[position() ge 2][self::* or normalize-space()]">
-            <info class="- topic/itemgroup task/info ">
-              <xsl:apply-templates select="$tail[position() gt 1]" mode="#current"/>
-            </info>    
-          </xsl:if>
+          <xsl:call-template name="step-content">
+            <xsl:with-param name="content" select="$tail[position() gt 1]"/>
+          </xsl:call-template>
         </xsl:otherwise>
       </xsl:choose>
     </step>
+  </xsl:template>
+
+  <xsl:template name="step-content">
+    <xsl:param name="content" as="node()*"/>
+    <xsl:if test="$content[self::* or normalize-space()]">
+      <xsl:for-each-group select="$content" group-by="contains-token(@outputclass, 'choices')">
+        <xsl:choose>
+          <xsl:when test="current-grouping-key()">
+            <choices class="- topic/ul task/choices ">
+              <xsl:for-each select="current-group()/*[contains-token(@class, 'topic/li')]">
+                <choice class="- topic/li task/choice ">
+                  <xsl:apply-templates select="node()" mode="task"/>
+                </choice>
+              </xsl:for-each>
+            </choices>
+          </xsl:when>
+          <xsl:otherwise>
+            <info class="- topic/itemgroup task/info ">
+              <xsl:apply-templates select="current-group()" mode="task"/>
+            </info>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:for-each-group>
+    </xsl:if>
   </xsl:template>
 
   <!-- concept -->
