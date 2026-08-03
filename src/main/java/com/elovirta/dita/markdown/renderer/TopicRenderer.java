@@ -1289,7 +1289,7 @@ public class TopicRenderer extends AbstractRenderer {
     if (info.startsWith("{") && info.endsWith("}")) {
       final Metadata metadata = Metadata.parse(info.subSequence(1, info.length() - 1).toString());
       if (!metadata.classes.isEmpty()) {
-        atts.add("outputclass", String.join(" ", metadata.classes));
+        atts.add(ATTRIBUTE_NAME_OUTPUTCLASS, String.join(" ", metadata.classes));
       }
       if (metadata.id != null) {
         atts.add(ATTRIBUTE_NAME_ID, metadata.id);
@@ -1305,11 +1305,11 @@ public class TopicRenderer extends AbstractRenderer {
       } else {
         language = info.subSequence(0, space);
       }
-      atts.add("outputclass", context.getDitaOptions().languageClassPrefix + language.unescape());
+      atts.add(ATTRIBUTE_NAME_OUTPUTCLASS, context.getDitaOptions().languageClassPrefix + language.unescape());
     } else {
       String noLanguageClass = context.getDitaOptions().noLanguageClass.trim();
       if (!noLanguageClass.isEmpty()) {
-        atts.add("outputclass", noLanguageClass);
+        atts.add(ATTRIBUTE_NAME_OUTPUTCLASS, noLanguageClass);
       }
     }
 

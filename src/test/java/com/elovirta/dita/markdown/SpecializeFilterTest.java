@@ -1,8 +1,11 @@
 package com.elovirta.dita.markdown;
 
+import static com.elovirta.dita.markdown.DitaRenderer.IMPLICIT_CHOICES;
+import static com.elovirta.dita.markdown.DitaRenderer.IMPLICIT_SUBSTEPS;
 import static org.dita.dost.util.Constants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.vladsch.flexmark.util.data.MutableDataSet;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -47,11 +50,13 @@ public class SpecializeFilterTest {
   private Transformer transformer;
   private DocumentBuilder documentBuilder;
   private SpecializeFilter filter;
+  private MutableDataSet options;
 
   @BeforeEach
   public void setUp() throws ParserConfigurationException, SAXException, TransformerConfigurationException {
     documentBuilderFactory.setNamespaceAware(true);
-    filter = new SpecializeFilter();
+    options = new MutableDataSet();
+    filter = new SpecializeFilter(options);
     filter.setParent(parserFactory.newSAXParser().getXMLReader());
     transformer = transformerFactory.newTransformer();
     documentBuilder = documentBuilderFactory.newDocumentBuilder();
@@ -77,6 +82,19 @@ public class SpecializeFilterTest {
     try (
       InputStream srcIn = getClass().getResourceAsStream("/specialize/src/" + name + ".dita");
       InputStream expIn = getClass().getResourceAsStream("/specialize/exp/" + name + ".dita")
+    ) {
+      run_filter(srcIn, expIn);
+    }
+  }
+
+  @Test
+  public void testImplicit() throws Exception {
+    options.set(IMPLICIT_CHOICES, true);
+    options.set(IMPLICIT_SUBSTEPS, true);
+
+    try (
+      InputStream srcIn = getClass().getResourceAsStream("/specialize/src/task_choices_implicit.dita");
+      InputStream expIn = getClass().getResourceAsStream("/specialize/exp/task_choices.dita")
     ) {
       run_filter(srcIn, expIn);
     }

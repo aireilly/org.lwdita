@@ -1,9 +1,12 @@
 package com.elovirta.dita.markdown;
 
+import static com.elovirta.dita.markdown.DitaRenderer.IMPLICIT_CHOICES;
+import static com.elovirta.dita.markdown.DitaRenderer.IMPLICIT_SUBSTEPS;
 import static com.elovirta.dita.markdown.renderer.TopicRenderer.TIGHT_LIST_P;
 import static javax.xml.XMLConstants.NULL_NS_URI;
 import static org.dita.dost.util.Constants.*;
 
+import com.vladsch.flexmark.util.data.DataSet;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,6 +48,7 @@ public class SpecializeFilter extends XMLFilterImpl {
     POST_STEPS,
   }
 
+  private final DataSet options;
   private final Type forceType;
 
   /**
@@ -72,12 +76,13 @@ public class SpecializeFilter extends XMLFilterImpl {
 
   private final Deque<String> elementStack = new ArrayDeque<>();
 
-  public SpecializeFilter() {
-    this(null);
+  public SpecializeFilter(DataSet options) {
+    this(options, null);
   }
 
-  public SpecializeFilter(Type forceType) {
+  public SpecializeFilter(DataSet options, Type forceType) {
     super();
+    this.options = options;
     this.forceType = forceType;
   }
 
@@ -191,7 +196,11 @@ public class SpecializeFilter extends XMLFilterImpl {
           closeImplicitSection();
           taskState = TaskState.STEPS;
           renameStartElement(Constants.TASK_STEPS, atts);
-        } else if (depth == 5 && (taskState == TaskState.STEP || taskState == TaskState.INFO)) {
+        } else if (
+          depth == 5 &&
+          (taskState == TaskState.STEP || taskState == TaskState.INFO) &&
+          (IMPLICIT_SUBSTEPS.get(options) || getOutputclass(atts).contains(TASK_SUBSTEPS.localName))
+        ) {
           if (taskState == TaskState.INFO) {
             doEndElement(TASK_INFO);
           }
@@ -206,7 +215,11 @@ public class SpecializeFilter extends XMLFilterImpl {
           closeImplicitSection();
           taskState = TaskState.STEPS;
           renameStartElement(TASK_STEPS_UNORDERED, atts);
-        } else if (depth == 5 && (taskState == TaskState.STEP || taskState == TaskState.INFO)) {
+        } else if (
+          depth == 5 &&
+          (taskState == TaskState.STEP || taskState == TaskState.INFO) &&
+          (IMPLICIT_CHOICES.get(options) || getOutputclass(atts).contains(TASK_CHOICES.localName))
+        ) {
           if (taskState == TaskState.INFO) {
             doEndElement(TASK_INFO);
           }
@@ -334,7 +347,7 @@ public class SpecializeFilter extends XMLFilterImpl {
         break;
       case "ul":
         if (depth == DEPTH_IN_BODY) {
-          taskState = TaskState.STEP;
+          taskState = TaskState.POST_STEPS;
         } else if (depth == 5 && taskState == TaskState.CHOICES) {
           taskState = TaskState.STEP;
         }

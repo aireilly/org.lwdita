@@ -105,6 +105,14 @@ public class MarkdownReaderTest extends AbstractReaderTest {
     run(file);
   }
 
+  @Test
+  public void testImplicitChoices() throws Exception {
+    reader.setFeature("http://lwdita.org/sax/features/implicit-choices", true);
+    reader.setFeature("http://lwdita.org/sax/features/implicit-substeps", true);
+
+    run(getSrc() + "task/task_choices_implicit.md", getExp() + "task/task_choices.dita");
+  }
+
   @ParameterizedTest
   @ValueSource(strings = { "dita_block.md", "dita_block_unsupported.md", "dita_inline.md" })
   public void test_rawDITA(String file) throws Exception {

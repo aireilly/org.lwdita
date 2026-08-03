@@ -95,7 +95,7 @@ public abstract class AbstractReaderTest {
       }
       assertFalse(diff.hasDifferences());
     } catch (AssertionFailedError e) {
-      //      transformerFactory.newTransformer().transform(new DOMSource(act), new StreamResult(System.out));
+      transformerFactory.newTransformer().transform(new DOMSource(act), new StreamResult(System.out));
       throw e;
     }
   }

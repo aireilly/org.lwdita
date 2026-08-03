@@ -54,6 +54,10 @@ public class DitaRenderer {
   public static final DataKey<Boolean> FIX_ROOT_HEADING = new DataKey<>("FIXUP_ROOT_HEADING", false);
   /** Generate DITA map output. */
   public static final DataKey<Boolean> MAP = new DataKey<>("MAP", false);
+  /** Treat unordered list in step as choices. */
+  public static final DataKey<Boolean> IMPLICIT_CHOICES = new DataKey<>("IMPLICIT_CHOICES", false);
+  /** Treat ordered list in step as substeps. */
+  public static final DataKey<Boolean> IMPLICIT_SUBSTEPS = new DataKey<>("IMPLICIT_SUBSTEPS", true);
   //  public static final DataKey<String> SOFT_BREAK = new DataKey<>("SOFT_BREAK", "\n");
   //  public static final DataKey<String> HARD_BREAK = new DataKey<>("HARD_BREAK", "<br />\n");
   //  public static final NullableDataKey<String> STRONG_EMPHASIS_STYLE_HTML_OPEN = new NullableDataKey<>(
