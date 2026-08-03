@@ -76,6 +76,7 @@ public class SpecializeFilterTest {
       "task_inline_in_cmd",
       "task_result",
       "task_substeps",
+      "task_choicetable",
     }
   )
   public void test(String name) throws Exception {
