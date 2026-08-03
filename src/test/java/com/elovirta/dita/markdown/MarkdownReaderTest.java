@@ -122,6 +122,13 @@ public class MarkdownReaderTest extends AbstractReaderTest {
     run(getSrc() + src, getExp() + exp);
   }
 
+  @Test
+  public void testImplicitTaskSections() throws Exception {
+    reader.setFeature("http://lwdita.org/sax/features/implicit-task-sections", true);
+
+    run(getSrc() + "task/task_default_titles.md", getExp() + "task/task_default_titles.dita");
+  }
+
   @ParameterizedTest
   @ValueSource(strings = { "dita_block.md", "dita_block_unsupported.md", "dita_inline.md" })
   public void test_rawDITA(String file) throws Exception {

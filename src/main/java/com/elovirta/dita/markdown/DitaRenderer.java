@@ -60,6 +60,8 @@ public class DitaRenderer {
   public static final DataKey<Boolean> IMPLICIT_CHOICETABLE = new DataKey<>("IMPLICIT_CHOICETABLE", false);
   /** Treat ordered list in step as substeps. */
   public static final DataKey<Boolean> IMPLICIT_SUBSTEPS = new DataKey<>("IMPLICIT_SUBSTEPS", true);
+  /** Map well-known heading titles to task section elements. */
+  public static final DataKey<Boolean> IMPLICIT_TASK_SECTIONS = new DataKey<>("IMPLICIT_TASK_SECTIONS", false);
   //  public static final DataKey<String> SOFT_BREAK = new DataKey<>("SOFT_BREAK", "\n");
   //  public static final DataKey<String> HARD_BREAK = new DataKey<>("HARD_BREAK", "<br />\n");
   //  public static final NullableDataKey<String> STRONG_EMPHASIS_STYLE_HTML_OPEN = new NullableDataKey<>(

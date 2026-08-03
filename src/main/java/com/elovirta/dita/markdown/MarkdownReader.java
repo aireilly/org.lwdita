@@ -81,6 +81,8 @@ public class MarkdownReader implements XMLReader {
    *     <dd>Treat unordered list inside step as choices</dd>
    *     <dt><code>http://lwdita.org/sax/features/implicit-substeps</code></dt>
    *     <dd>Treat ordered list inside step as substeps</dd>
+   *     <dt><code>http://lwdita.org/sax/features/implicit-task-sections</code></dt>
+   *     <dd>Map well-known heading titles to task section elements</dd>
    * </dl>
    */
   static final Map<String, DataKey<Boolean>> FEATURES;
@@ -104,6 +106,7 @@ public class MarkdownReader implements XMLReader {
     features.put("http://lwdita.org/sax/features/implicit-choices", DitaRenderer.IMPLICIT_CHOICES);
     features.put("http://lwdita.org/sax/features/implicit-choicetable", DitaRenderer.IMPLICIT_CHOICETABLE);
     features.put("http://lwdita.org/sax/features/implicit-substeps", DitaRenderer.IMPLICIT_SUBSTEPS);
+    features.put("http://lwdita.org/sax/features/implicit-task-sections", DitaRenderer.IMPLICIT_TASK_SECTIONS);
     FEATURES = Collections.unmodifiableMap(features);
   }
 
