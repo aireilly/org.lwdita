@@ -56,6 +56,8 @@ public class DitaRenderer {
   public static final DataKey<Boolean> MAP = new DataKey<>("MAP", false);
   /** Treat unordered list in step as choices. */
   public static final DataKey<Boolean> IMPLICIT_CHOICES = new DataKey<>("IMPLICIT_CHOICES", false);
+  /** Treat table in step as choice table. */
+  public static final DataKey<Boolean> IMPLICIT_CHOICETABLE = new DataKey<>("IMPLICIT_CHOICETABLE", false);
   /** Treat ordered list in step as substeps. */
   public static final DataKey<Boolean> IMPLICIT_SUBSTEPS = new DataKey<>("IMPLICIT_SUBSTEPS", true);
   //  public static final DataKey<String> SOFT_BREAK = new DataKey<>("SOFT_BREAK", "\n");

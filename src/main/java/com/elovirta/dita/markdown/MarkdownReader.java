@@ -102,6 +102,7 @@ public class MarkdownReader implements XMLReader {
     features.put("http://lwdita.org/sax/features/fix-root-heading", DitaRenderer.FIX_ROOT_HEADING);
     features.put("http://lwdita.org/sax/features/map", DitaRenderer.MAP);
     features.put("http://lwdita.org/sax/features/implicit-choices", DitaRenderer.IMPLICIT_CHOICES);
+    features.put("http://lwdita.org/sax/features/implicit-choicetable", DitaRenderer.IMPLICIT_CHOICETABLE);
     features.put("http://lwdita.org/sax/features/implicit-substeps", DitaRenderer.IMPLICIT_SUBSTEPS);
     FEATURES = Collections.unmodifiableMap(features);
   }

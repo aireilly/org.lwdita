@@ -1,6 +1,7 @@
 package com.elovirta.dita.markdown;
 
 import static com.elovirta.dita.markdown.DitaRenderer.IMPLICIT_CHOICES;
+import static com.elovirta.dita.markdown.DitaRenderer.IMPLICIT_CHOICETABLE;
 import static com.elovirta.dita.markdown.DitaRenderer.IMPLICIT_SUBSTEPS;
 import static org.dita.dost.util.Constants.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,7 +25,6 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
-import org.dita.dost.util.XMLUtils;
 import org.dita.dost.util.XMLUtils.AttributesBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,6 +76,7 @@ public class SpecializeFilterTest {
       "task_inline_in_cmd",
       "task_result",
       "task_substeps",
+      "task_choicetable",
     }
   )
   public void test(String name) throws Exception {
@@ -87,14 +88,22 @@ public class SpecializeFilterTest {
     }
   }
 
-  @Test
-  public void testImplicit() throws Exception {
+  @ParameterizedTest
+  @CsvSource(
+    {
+      "task_choices_implicit.dita,task_choices.dita",
+      "task_choicetable_implicit.dita,task_choicetable.dita",
+      "task_substeps_implicit.dita,task_substeps.dita",
+    }
+  )
+  public void testImplicit(String src, String exp) throws Exception {
     options.set(IMPLICIT_CHOICES, true);
+    options.set(IMPLICIT_CHOICETABLE, true);
     options.set(IMPLICIT_SUBSTEPS, true);
 
     try (
-      InputStream srcIn = getClass().getResourceAsStream("/specialize/src/task_choices_implicit.dita");
-      InputStream expIn = getClass().getResourceAsStream("/specialize/exp/task_choices.dita")
+      InputStream srcIn = getClass().getResourceAsStream("/specialize/src/" + src);
+      InputStream expIn = getClass().getResourceAsStream("/specialize/exp/" + exp)
     ) {
       run_filter(srcIn, expIn);
     }
