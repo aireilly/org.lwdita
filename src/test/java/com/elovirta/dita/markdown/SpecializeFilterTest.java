@@ -1,6 +1,7 @@
 package com.elovirta.dita.markdown;
 
 import static com.elovirta.dita.markdown.DitaRenderer.IMPLICIT_CHOICES;
+import static com.elovirta.dita.markdown.DitaRenderer.IMPLICIT_SUBSTEPS;
 import static org.dita.dost.util.Constants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -89,7 +90,7 @@ public class SpecializeFilterTest {
   @Test
   public void testImplicit() throws Exception {
     options.set(IMPLICIT_CHOICES, true);
-    //    filter.setFeature("http://lwdita.org/sax/features/implicit-choices", true);
+    options.set(IMPLICIT_SUBSTEPS, true);
 
     try (
       InputStream srcIn = getClass().getResourceAsStream("/specialize/src/task_choices_implicit.dita");

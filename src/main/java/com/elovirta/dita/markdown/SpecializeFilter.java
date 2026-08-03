@@ -1,6 +1,7 @@
 package com.elovirta.dita.markdown;
 
 import static com.elovirta.dita.markdown.DitaRenderer.IMPLICIT_CHOICES;
+import static com.elovirta.dita.markdown.DitaRenderer.IMPLICIT_SUBSTEPS;
 import static com.elovirta.dita.markdown.renderer.TopicRenderer.TIGHT_LIST_P;
 import static javax.xml.XMLConstants.NULL_NS_URI;
 import static org.dita.dost.util.Constants.*;
@@ -195,7 +196,11 @@ public class SpecializeFilter extends XMLFilterImpl {
           closeImplicitSection();
           taskState = TaskState.STEPS;
           renameStartElement(Constants.TASK_STEPS, atts);
-        } else if (depth == 5 && (taskState == TaskState.STEP || taskState == TaskState.INFO)) {
+        } else if (
+          depth == 5 &&
+          (taskState == TaskState.STEP || taskState == TaskState.INFO) &&
+          (IMPLICIT_SUBSTEPS.get(options) || getOutputclass(atts).contains(TASK_SUBSTEPS.localName))
+        ) {
           if (taskState == TaskState.INFO) {
             doEndElement(TASK_INFO);
           }
@@ -213,7 +218,7 @@ public class SpecializeFilter extends XMLFilterImpl {
         } else if (
           depth == 5 &&
           (taskState == TaskState.STEP || taskState == TaskState.INFO) &&
-          (IMPLICIT_CHOICES.get(options) || getOutputclass(atts).contains("choices"))
+          (IMPLICIT_CHOICES.get(options) || getOutputclass(atts).contains(TASK_CHOICES.localName))
         ) {
           if (taskState == TaskState.INFO) {
             doEndElement(TASK_INFO);
@@ -343,8 +348,6 @@ public class SpecializeFilter extends XMLFilterImpl {
       case "ul":
         if (depth == DEPTH_IN_BODY) {
           taskState = TaskState.POST_STEPS;
-        } else if (depth == 5 && taskState == TaskState.CHOICES) {
-          taskState = TaskState.STEP;
         } else if (depth == 5 && taskState == TaskState.CHOICES) {
           taskState = TaskState.STEP;
         }

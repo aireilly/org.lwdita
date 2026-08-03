@@ -108,6 +108,7 @@ public class MarkdownReaderTest extends AbstractReaderTest {
   @Test
   public void testImplicitChoices() throws Exception {
     reader.setFeature("http://lwdita.org/sax/features/implicit-choices", true);
+    reader.setFeature("http://lwdita.org/sax/features/implicit-substeps", true);
 
     run(getSrc() + "task/task_choices_implicit.md", getExp() + "task/task_choices.dita");
   }

@@ -79,6 +79,8 @@ public class MarkdownReader implements XMLReader {
    *     <dd>Fix missing root heading by reading title from either YAML heading or filename. Does not throw a warning about the missing header.</dd>
    *     <dt><code>http://lwdita.org/sax/features/implicit-choices</code></dt>
    *     <dd>Treat unordered list inside step as choices</dd>
+   *     <dt><code>http://lwdita.org/sax/features/implicit-substeps</code></dt>
+   *     <dd>Treat ordered list inside step as substeps</dd>
    * </dl>
    */
   static final Map<String, DataKey<Boolean>> FEATURES;
@@ -100,6 +102,7 @@ public class MarkdownReader implements XMLReader {
     features.put("http://lwdita.org/sax/features/fix-root-heading", DitaRenderer.FIX_ROOT_HEADING);
     features.put("http://lwdita.org/sax/features/map", DitaRenderer.MAP);
     features.put("http://lwdita.org/sax/features/implicit-choices", DitaRenderer.IMPLICIT_CHOICES);
+    features.put("http://lwdita.org/sax/features/implicit-substeps", DitaRenderer.IMPLICIT_SUBSTEPS);
     FEATURES = Collections.unmodifiableMap(features);
   }
 
