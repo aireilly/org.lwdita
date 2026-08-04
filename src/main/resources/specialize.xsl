@@ -11,7 +11,7 @@
   <xsl:template match="/">
     <xsl:apply-templates mode="dispatch"/>
   </xsl:template>
-  
+
   <xsl:template match="dita" mode="dispatch">
     <dita>
       <xsl:apply-templates select="@*" mode="dispatch"/>
@@ -73,9 +73,14 @@
   <xsl:template match="body" mode="task">
     <taskbody class="- topic/body task/taskbody ">
       <xsl:apply-templates select="@* except @class" mode="#current"/>
-      <xsl:for-each-group select="*" group-adjacent="contains(@class, ' topic/ol ') or contains(@class, ' topic/ul ') or contains(@class, ' topic/section ')">
+      <xsl:for-each-group select="*" group-adjacent="contains(@class, ' topic/ol ') or
+                                                     contains(@class, ' topic/ul ') or
+                                                     contains(@class, ' topic/section ')">
         <xsl:choose>
-          <xsl:when test="current-grouping-key() and empty(preceding-sibling::*)">
+          <xsl:when test="current-grouping-key() and
+                          empty(preceding-sibling::*) and
+                          not(current-group()[contains(@class, ' topic/ol ') or
+                                              contains(@class, ' topic/ul ')])">
             <context class="- topic/section task/context ">
               <xsl:apply-templates select="current-group()/*" mode="#current"/>
             </context>
@@ -86,7 +91,8 @@
           <xsl:when test="current-grouping-key()">
             <xsl:apply-templates select="current-group()" mode="#current"/>
           </xsl:when>
-          <xsl:when test="current-group()[1]/preceding-sibling::*[contains(@class, ' topic/ol ') or contains(@class, ' topic/ul ')]">
+          <xsl:when test="current-group()[1]/preceding-sibling::*[contains(@class, ' topic/ol ') or
+                                                                  contains(@class, ' topic/ul ')]">
             <result class="- topic/section task/result ">
               <xsl:apply-templates select="current-group()" mode="#current"/>
             </result>
@@ -146,25 +152,66 @@
   <xsl:template name="step-content">
     <xsl:param name="content" as="node()*"/>
     <xsl:if test="$content[self::* or normalize-space()]">
-      <xsl:for-each-group select="$content" group-by="contains-token(@outputclass, 'choices')">
+      <xsl:for-each-group select="$content"
+                          group-by="tokenize(@outputclass, '\s+') = ('choices', 'substeps', 'choicetable')">
         <xsl:choose>
-          <xsl:when test="current-grouping-key()">
+          <xsl:when test="current-grouping-key() and current-group()/self::ul">
             <choices class="- topic/ul task/choices ">
-              <xsl:for-each select="current-group()/*[contains-token(@class, 'topic/li')]">
+              <xsl:for-each select="current-group()/li">
                 <choice class="- topic/li task/choice ">
                   <xsl:apply-templates select="node()" mode="task"/>
                 </choice>
               </xsl:for-each>
             </choices>
           </xsl:when>
-          <xsl:otherwise>
+          <xsl:when test="current-grouping-key() and current-group()/self::ol">
+            <substeps class="- topic/ol task/substeps ">
+              <xsl:apply-templates select="current-group()/li" mode="task"/>
+            </substeps>
+          </xsl:when>
+          <xsl:when test="current-group()[self::* or normalize-space()]">
             <info class="- topic/itemgroup task/info ">
               <xsl:apply-templates select="current-group()" mode="task"/>
             </info>
-          </xsl:otherwise>
+          </xsl:when>
         </xsl:choose>
       </xsl:for-each-group>
     </xsl:if>
+  </xsl:template>
+
+  <xsl:template match="body/ol/li/ol/li | body/ul/li/ol/li" mode="task">
+    <substep class="- topic/li task/substep ">
+      <xsl:apply-templates select="@* except @class" mode="#current"/>
+
+      <xsl:variable name="first-block" select="*[x:is-block(.)][1]" as="element()?"/>
+      <xsl:variable name="head" select="if (exists($first-block)) then node()[. &lt;&lt; $first-block] else node()" as="node()*"/>
+      <xsl:variable name="tail" select="if (exists($first-block)) then ($first-block | node()[. &gt;&gt; $first-block]) else ()" as="node()*"/>
+      <xsl:choose>
+        <xsl:when test="$head[self::* or normalize-space()]">
+          <cmd class="- topic/ph task/cmd ">
+            <xsl:copy-of select="$head"/>
+          </cmd>
+          <xsl:if test="$tail[self::* or normalize-space()]">
+            <info class="- topic/itemgroup task/info ">
+              <xsl:apply-templates select="$tail" mode="task"/>
+            </info>
+          </xsl:if>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:for-each select="$tail[1]">
+            <cmd class="- topic/ph task/cmd ">
+              <xsl:apply-templates select="@* except @class | node()" mode="#current"/>
+            </cmd>
+          </xsl:for-each>
+          <xsl:variable name="content" select="$tail[position() gt 1]"/>
+          <xsl:if test="$content[self::* or normalize-space()]">
+            <info class="- topic/itemgroup task/info ">
+              <xsl:apply-templates select="$content" mode="task"/>
+            </info>
+          </xsl:if>
+        </xsl:otherwise>
+      </xsl:choose>
+    </substep>
   </xsl:template>
 
   <!-- concept -->
@@ -183,7 +230,7 @@
   </xsl:template>
 
   <!-- common -->
-  
+
   <xsl:template match="topic/@outputclass" mode="concept task reference">
     <xsl:variable name="type" as="xs:string?" select="tokenize(., '\s+')[. = ('concept', 'task', 'reference')]"/>
     <xsl:choose>
