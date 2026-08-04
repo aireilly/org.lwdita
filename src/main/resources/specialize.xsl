@@ -164,6 +164,32 @@
               </xsl:for-each>
             </choices>
           </xsl:when>
+          <xsl:when test="current-grouping-key() and current-group()/self::table">
+            <xsl:for-each select="current-group()">
+              <choicetable class="- topic/simpletable task/choicetable ">
+                <xsl:for-each select="tgroup/thead/row">
+                  <chhead class="- topic/sthead task/chhead ">
+                    <choptionhd class="- topic/stentry task/choptionhd ">
+                      <xsl:apply-templates select="entry[1]/node()" mode="task"/>
+                    </choptionhd>
+                    <chdeschd class="- topic/stentry task/chdeschd ">
+                      <xsl:apply-templates select="entry[2]/node()" mode="task"/>
+                    </chdeschd>
+                  </chhead>
+                </xsl:for-each>
+                <xsl:for-each select="tgroup/tbody/row">
+                  <chrow class="- topic/strow task/chrow ">
+                    <choption class="- topic/stentry task/choption ">
+                      <xsl:apply-templates select="entry[1]/node()" mode="task"/>
+                    </choption>
+                    <chdesc class="- topic/stentry task/chdesc ">
+                      <xsl:apply-templates select="entry[2]/node()" mode="task"/>
+                    </chdesc>
+                  </chrow>
+                </xsl:for-each>
+              </choicetable>
+            </xsl:for-each>
+          </xsl:when>
           <xsl:when test="current-grouping-key() and current-group()/self::ol">
             <substeps class="- topic/ol task/substeps ">
               <xsl:apply-templates select="current-group()/li" mode="task"/>
