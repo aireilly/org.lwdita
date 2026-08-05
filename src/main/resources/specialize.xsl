@@ -8,6 +8,10 @@
 
   <xsl:import href="classpath:///utils.xsl"/>
 
+  <xsl:param name="implicit_choices" as="xs:boolean"/>
+  <xsl:param name="implicit_choicetable" as="xs:boolean"/>
+  <xsl:param name="implicit_substeps" as="xs:boolean"/>
+
   <xsl:template match="/">
     <xsl:apply-templates mode="dispatch"/>
   </xsl:template>
@@ -153,9 +157,14 @@
     <xsl:param name="content" as="node()*"/>
     <xsl:if test="$content[self::* or normalize-space()]">
       <xsl:for-each-group select="$content"
-                          group-by="tokenize(@outputclass, '\s+') = ('choices', 'substeps', 'choicetable')">
+                          group-by="tokenize(@outputclass, '\s+') = ('choices', 'substeps', 'choicetable') or
+                                    ($implicit_choices and self::ul) or
+                                    ($implicit_choicetable and self::table) or
+                                    ($implicit_substeps and self::ol)">
         <xsl:choose>
-          <xsl:when test="current-grouping-key() and current-group()/self::ul">
+          <xsl:when test="current-grouping-key() and
+                          (tokenize(current-group()/@outputclass, '\s+') = 'choices' or
+                            ($implicit_choices and current-group()/self::ul))">
             <choices class="- topic/ul task/choices ">
               <xsl:for-each select="current-group()/li">
                 <choice class="- topic/li task/choice ">
@@ -164,7 +173,9 @@
               </xsl:for-each>
             </choices>
           </xsl:when>
-          <xsl:when test="current-grouping-key() and current-group()/self::table">
+          <xsl:when test="current-grouping-key() and
+                          (tokenize(current-group()/@outputclass, '\s+') = 'choicetable' or
+                            ($implicit_choicetable and current-group()/self::table))">
             <xsl:for-each select="current-group()">
               <choicetable class="- topic/simpletable task/choicetable ">
                 <xsl:for-each select="tgroup/thead/row">
@@ -190,7 +201,9 @@
               </choicetable>
             </xsl:for-each>
           </xsl:when>
-          <xsl:when test="current-grouping-key() and current-group()/self::ol">
+          <xsl:when test="current-grouping-key() and
+           (tokenize(current-group()/@outputclass, '\s+') = 'substeps' or
+                            ($implicit_substeps and current-group()/self::ol))">
             <substeps class="- topic/ol task/substeps ">
               <xsl:apply-templates select="current-group()/li" mode="task"/>
             </substeps>

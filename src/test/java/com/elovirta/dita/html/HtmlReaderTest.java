@@ -3,6 +3,7 @@ package com.elovirta.dita.html;
 import com.elovirta.dita.utils.AbstractReaderTest;
 import com.vladsch.flexmark.util.data.DataSet;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.xml.sax.XMLReader;
 
@@ -71,5 +72,21 @@ public class HtmlReaderTest extends AbstractReaderTest {
   )
   public void test(String file) throws Exception {
     run(file);
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+    {
+      "task/task_choices_implicit.html,task/task_choices.dita",
+      "task/task_choicetable_implicit.html,task/task_choicetable.dita",
+      "task/task_substeps_implicit.html,task/task_substeps.dita",
+    }
+  )
+  public void testImplicit(String src, String exp) throws Exception {
+    r.setFeature("http://lwdita.org/sax/features/implicit-choices", true);
+    r.setFeature("http://lwdita.org/sax/features/implicit-choicetable", true);
+    r.setFeature("http://lwdita.org/sax/features/implicit-substeps", true);
+
+    run(getSrc() + src, getExp() + exp);
   }
 }
