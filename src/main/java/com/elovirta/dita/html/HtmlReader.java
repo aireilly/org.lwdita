@@ -2,11 +2,15 @@ package com.elovirta.dita.html;
 
 import static com.elovirta.dita.markdown.MarkdownReader.FORMATS;
 
+import com.elovirta.dita.markdown.DitaRenderer;
 import com.elovirta.dita.utils.ClasspathURIResolver;
 import com.google.common.collect.Lists;
 import com.vladsch.flexmark.util.data.DataSet;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXResult;
@@ -23,6 +27,7 @@ import org.xml.sax.*;
  */
 public class HtmlReader implements XMLReader {
 
+  private final List<Transformer> transformers;
   private final HtmlParser parser;
   private final SAXResult result;
 
@@ -34,6 +39,7 @@ public class HtmlReader implements XMLReader {
       final SAXTransformerFactory tf = (SAXTransformerFactory) TransformerFactory.newInstance();
       tf.setURIResolver(new ClasspathURIResolver(tf.getURIResolver()));
 
+      transformers = new ArrayList<>();
       TransformerHandler transformerHandler = null;
       result = new SAXResult();
       SAXResult res = result;
@@ -43,7 +49,12 @@ public class HtmlReader implements XMLReader {
           "classpath:///" + stylesheet
         );
         transformerHandler = tf.newTransformerHandler(src);
-        transformerHandler.getTransformer().setParameter("formats", String.join(",", FORMATS.get(options)));
+        Transformer transformer = transformerHandler.getTransformer();
+        transformers.add(transformer);
+        transformer.setParameter("formats", String.join(",", FORMATS.get(options)));
+        transformer.setParameter("implicit_choices", DitaRenderer.IMPLICIT_CHOICES.get(options));
+        transformer.setParameter("implicit_choicetable", DitaRenderer.IMPLICIT_CHOICETABLE.get(options));
+        transformer.setParameter("implicit_substeps", DitaRenderer.IMPLICIT_SUBSTEPS.get(options));
         transformerHandler.setResult(res);
         res = new SAXResult(transformerHandler);
       }
@@ -63,7 +74,19 @@ public class HtmlReader implements XMLReader {
 
   @Override
   public void setFeature(String name, boolean value) throws SAXNotRecognizedException, SAXNotSupportedException {
-    parser.setFeature(name, value);
+    switch (name) {
+      case "http://lwdita.org/sax/features/implicit-choices":
+        transformers.forEach(transformer -> transformer.setParameter("implicit_choices", value));
+        break;
+      case "http://lwdita.org/sax/features/implicit-choicetable":
+        transformers.forEach(transformer -> transformer.setParameter("implicit_choicetable", value));
+        break;
+      case "http://lwdita.org/sax/features/implicit-substeps":
+        transformers.forEach(transformer -> transformer.setParameter("implicit_substeps", value));
+        break;
+      default:
+        parser.setFeature(name, value);
+    }
   }
 
   @Override

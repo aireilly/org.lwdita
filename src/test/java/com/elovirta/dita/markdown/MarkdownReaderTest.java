@@ -85,6 +85,7 @@ public class MarkdownReaderTest extends AbstractReaderTest {
       "table.md",
       "task.md",
       "task/task_choices.md",
+      "task/task_choicetable.md",
       "taskTight.md",
       "taskOneStep.md",
       "testBOM.md",
@@ -105,12 +106,20 @@ public class MarkdownReaderTest extends AbstractReaderTest {
     run(file);
   }
 
-  @Test
-  public void testImplicitChoices() throws Exception {
+  @ParameterizedTest
+  @CsvSource(
+    {
+      "task/task_choices_implicit.md,task/task_choices.dita",
+      "task/task_choicetable_implicit.md,task/task_choicetable.dita",
+      "task/task_substeps_implicit.md,task/task_substeps.dita",
+    }
+  )
+  public void testImplicit(String src, String exp) throws Exception {
     reader.setFeature("http://lwdita.org/sax/features/implicit-choices", true);
+    reader.setFeature("http://lwdita.org/sax/features/implicit-choicetable", true);
     reader.setFeature("http://lwdita.org/sax/features/implicit-substeps", true);
 
-    run(getSrc() + "task/task_choices_implicit.md", getExp() + "task/task_choices.dita");
+    run(getSrc() + src, getExp() + exp);
   }
 
   @ParameterizedTest
