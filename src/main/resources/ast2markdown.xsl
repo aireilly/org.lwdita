@@ -468,6 +468,18 @@
     <xsl:value-of select="."/>
   </xsl:template>
 
+  <!-- Raw DITA passthrough: output serialized markup verbatim,
+       bypassing Markdown escaping. -->
+  <xsl:template match="rawnode" mode="ast" priority="100">
+    <xsl:value-of select="."/>
+  </xsl:template>
+
+  <xsl:template match="rawblock" mode="ast" priority="100">
+    <xsl:value-of select="."/>
+    <xsl:value-of select="$linefeed"/>
+    <xsl:value-of select="$linefeed"/>
+  </xsl:template>
+
   <xsl:template match="node()" mode="ast" priority="-10">
     <xsl:message>ERROR: Unsupported AST node <xsl:value-of select="name()"/></xsl:message>
     <xsl:apply-templates mode="ast"/>
@@ -513,6 +525,16 @@
   <xsl:template match="codeblock//text()"
                 mode="ast-clean" priority="20">
     <xsl:value-of select="."/>
+  </xsl:template>
+
+  <xsl:template match="rawnode/text() |
+                       rawblock/text()"
+                mode="ast-clean" priority="20">
+    <xsl:value-of select="."/>
+  </xsl:template>
+
+  <xsl:template match="rawblock | rawnode" mode="flatten" priority="100">
+    <xsl:copy-of select="."/>
   </xsl:template>
 
   <xsl:template match="div[@class = 'p']" mode="ast-clean">
