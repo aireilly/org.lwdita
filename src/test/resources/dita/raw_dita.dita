@@ -1,0 +1,102 @@
+<topic xmlns:ditaarch="http://dita.oasis-open.org/architecture/2005/" class="- topic/topic "
+  specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product"
+  id="raw-dita-test" ditaarch:DITAArchVersion="2.0">
+  <title class="- topic/title ">Raw DITA Test</title>
+  <body class="- topic/body ">
+    <p class="- topic/p ">Click <uicontrol class="+ topic/ph ui-d/uicontrol ">File</uicontrol> to open.</p>
+    <p class="- topic/p ">Navigate <menucascade class="+ topic/ph ui-d/menucascade "><uicontrol class="+ topic/ph ui-d/uicontrol ">File</uicontrol><uicontrol class="+ topic/ph ui-d/uicontrol ">Save</uicontrol></menucascade> to save.</p>
+    <p class="- topic/p ">The file <filepath class="+ topic/ph sw-d/filepath ">/etc/hosts</filepath> contains entries.</p>
+    <p class="- topic/p ">Run <cmdname class="+ topic/ph sw-d/cmdname ">grep</cmdname> to search.</p>
+    <p class="- topic/p ">Set <varname class="+ topic/ph sw-d/varname ">MY_VAR</varname> to configure.</p>
+    <p class="- topic/p ">Regular <b class="+ topic/ph hi-d/b ">bold</b> and <i class="+ topic/ph hi-d/i ">italic</i> and <codeph class="+ topic/ph pr-d/codeph ">code</codeph> stay as Markdown.</p>
+    <p class="- topic/p ">Superscript <sup class="+ topic/ph hi-d/sup ">2</sup> test.</p>
+    <section class="- topic/section ">
+      <title class="- topic/title ">Table with domain elements</title>
+      <table class="- topic/table ">
+        <tgroup class="- topic/tgroup " cols="3">
+          <colspec class="- topic/colspec " colname="col1"/>
+          <colspec class="- topic/colspec " colname="col2"/>
+          <colspec class="- topic/colspec " colname="col3"/>
+          <thead class="- topic/thead ">
+            <row class="- topic/row ">
+              <entry class="- topic/entry ">Action</entry>
+              <entry class="- topic/entry ">Element</entry>
+              <entry class="- topic/entry ">Path</entry>
+            </row>
+          </thead>
+          <tbody class="- topic/tbody ">
+            <row class="- topic/row ">
+              <entry class="- topic/entry ">Click <uicontrol class="+ topic/ph ui-d/uicontrol ">OK</uicontrol></entry>
+              <entry class="- topic/entry ">Run <cmdname class="+ topic/ph sw-d/cmdname ">make</cmdname></entry>
+              <entry class="- topic/entry "><filepath class="+ topic/ph sw-d/filepath ">/usr/bin</filepath></entry>
+            </row>
+            <row class="- topic/row ">
+              <entry class="- topic/entry ">Press <uicontrol class="+ topic/ph ui-d/uicontrol ">Enter</uicontrol></entry>
+              <entry class="- topic/entry "><b class="+ topic/ph hi-d/b ">Bold cell</b></entry>
+              <entry class="- topic/entry "><i class="+ topic/ph hi-d/i ">Italic cell</i></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section class="- topic/section ">
+      <title class="- topic/title ">Lists with domain elements</title>
+      <ul class="- topic/ul ">
+        <li class="- topic/li ">Click <uicontrol class="+ topic/ph ui-d/uicontrol ">Save</uicontrol> to save the file.</li>
+        <li class="- topic/li ">Edit <filepath class="+ topic/ph sw-d/filepath ">/etc/config.yaml</filepath> to configure.</li>
+        <li class="- topic/li ">Run <cmdname class="+ topic/ph sw-d/cmdname ">deploy</cmdname> with <varname class="+ topic/ph sw-d/varname ">TARGET</varname>.</li>
+      </ul>
+      <ol class="- topic/ol ">
+        <li class="- topic/li ">Open <menucascade class="+ topic/ph ui-d/menucascade "><uicontrol class="+ topic/ph ui-d/uicontrol ">Edit</uicontrol><uicontrol class="+ topic/ph ui-d/uicontrol ">Preferences</uicontrol></menucascade>.</li>
+        <li class="- topic/li ">Set the <varname class="+ topic/ph sw-d/varname ">HOME</varname> variable.</li>
+        <li class="- topic/li ">Use <b class="+ topic/ph hi-d/b ">bold</b> and <codeph class="+ topic/ph pr-d/codeph ">code</codeph> normally.</li>
+      </ol>
+    </section>
+    <section class="- topic/section ">
+      <title class="- topic/title ">Definition list with domain elements</title>
+      <dl class="- topic/dl ">
+        <dlentry class="- topic/dlentry ">
+          <dt class="- topic/dt "><uicontrol class="+ topic/ph ui-d/uicontrol ">Save</uicontrol></dt>
+          <dd class="- topic/dd "><p class="- topic/p ">Saves the current file to <filepath class="+ topic/ph sw-d/filepath ">/tmp/output</filepath>.</p></dd>
+        </dlentry>
+        <dlentry class="- topic/dlentry ">
+          <dt class="- topic/dt "><cmdname class="+ topic/ph sw-d/cmdname ">grep</cmdname></dt>
+          <dd class="- topic/dd "><p class="- topic/p ">Searches for <varname class="+ topic/ph sw-d/varname ">PATTERN</varname> in the input.</p></dd>
+        </dlentry>
+      </dl>
+    </section>
+    <section class="- topic/section ">
+      <title class="- topic/title ">Note with domain elements</title>
+      <note class="- topic/note " type="warning">Do not modify <filepath class="+ topic/ph sw-d/filepath ">/etc/passwd</filepath> directly.
+        Use <cmdname class="+ topic/ph sw-d/cmdname ">usermod</cmdname> instead.</note>
+    </section>
+    <section class="- topic/section ">
+      <title class="- topic/title ">Blockquote with domain elements</title>
+      <lq class="- topic/lq ">
+        <p class="- topic/p ">Always run <cmdname class="+ topic/ph sw-d/cmdname ">backup</cmdname> before modifying <filepath class="+ topic/ph sw-d/filepath ">/etc/fstab</filepath>.</p>
+      </lq>
+    </section>
+    <section class="- topic/section ">
+      <title class="- topic/title ">ID and reference preservation</title>
+      <p class="- topic/p " id="reusable-para">This paragraph is a conref target.</p>
+      <p class="- topic/p ">Click <b class="+ topic/ph hi-d/b " id="reuse-bold">Save</b> to continue.</p>
+      <p class="- topic/p " conref="common.dita#shared/install-note"/>
+      <p class="- topic/p ">Install <keyword class="- topic/keyword " keyref="product-name"/> first.</p>
+      <note class="- topic/note " type="warning" id="install-warning">Back up your data before upgrading.</note>
+      <p class="- topic/p " outputclass="draft">This paragraph has a custom class.</p>
+    </section>
+    <section class="- topic/section ">
+      <title class="- topic/title ">List with ID on item</title>
+      <ul class="- topic/ul ">
+        <li class="- topic/li " id="prereq-java">Install Java 11 or later.</li>
+        <li class="- topic/li ">Install Maven 3.8 or later.</li>
+      </ul>
+    </section>
+    <section class="- topic/section ">
+      <title class="- topic/title ">Mixed inline complexity</title>
+      <p class="- topic/p ">Use <cmdname class="+ topic/ph sw-d/cmdname ">ssh</cmdname> to connect, then <b class="+ topic/ph hi-d/b ">navigate</b> to <filepath class="+ topic/ph sw-d/filepath ">/var/log</filepath> and run <codeph class="+ topic/ph pr-d/codeph ">tail -f syslog</codeph>.</p>
+      <p class="- topic/p ">The <uicontrol class="+ topic/ph ui-d/uicontrol ">Status</uicontrol> field shows <systemoutput class="+ topic/ph sw-d/systemoutput ">OK</systemoutput> when ready.</p>
+      <p class="- topic/p ">Type <userinput class="+ topic/ph sw-d/userinput ">yes</userinput> to confirm.</p>
+    </section>
+  </body>
+</topic>
