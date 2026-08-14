@@ -943,11 +943,61 @@ public class TopicRenderer extends AbstractRenderer {
   }
 
   private void render(final OrderedList node, final NodeRendererContext context, final SaxWriter html) {
-    Attributes atts = getAttributesFromAttributesNode(node, OL_ATTS);
-    if (!mditaCoreProfile && inTask && !inSection && hasSubsequentListSibling(node)) {
-      atts = new AttributesBuilder(atts).add(ATTRIBUTE_NAME_OUTPUTCLASS, "body-ol").build();
+    if (!mditaCoreProfile && inTask && !inSection) {
+      final int splitIndex = findNumberingReset(node);
+      if (splitIndex > 0) {
+        renderSplitOrderedList(node, context, html, splitIndex);
+        return;
+      }
+      if (hasSubsequentListSibling(node)) {
+        final Attributes atts = new AttributesBuilder(getAttributesFromAttributesNode(node, OL_ATTS))
+          .add(ATTRIBUTE_NAME_OUTPUTCLASS, "body-ol").build();
+        printTag(node, context, html, TOPIC_OL, atts);
+        return;
+      }
     }
-    printTag(node, context, html, TOPIC_OL, atts);
+    printTag(node, context, html, TOPIC_OL, getAttributesFromAttributesNode(node, OL_ATTS));
+  }
+
+  private int findNumberingReset(OrderedList node) {
+    int prevNumber = -1;
+    int index = 0;
+    for (Node child = node.getFirstChild(); child != null; child = child.getNext()) {
+      if (child instanceof OrderedListItem) {
+        final String marker = ((OrderedListItem) child).getOpeningMarker().toString();
+        final int number = Integer.parseInt(marker.replaceAll("\\D", ""));
+        if (prevNumber > 1 && number == 1) {
+          return index;
+        }
+        prevNumber = number;
+      }
+      index++;
+    }
+    return -1;
+  }
+
+  private void renderSplitOrderedList(OrderedList node, NodeRendererContext context, SaxWriter html, int splitIndex) {
+    final Attributes contextAtts = new AttributesBuilder(getAttributesFromAttributesNode(node, OL_ATTS))
+      .add(ATTRIBUTE_NAME_OUTPUTCLASS, "body-ol").build();
+    html.startElement(node, TOPIC_OL, contextAtts);
+    int index = 0;
+    for (Node child = node.getFirstChild(); child != null; child = child.getNext()) {
+      if (index >= splitIndex) break;
+      context.renderChild(child);
+      index++;
+    }
+    html.endElement();
+
+    final Attributes stepsAtts = getAttributesFromAttributesNode(node, OL_ATTS);
+    html.startElement(node, TOPIC_OL, stepsAtts);
+    index = 0;
+    for (Node child = node.getFirstChild(); child != null; child = child.getNext()) {
+      if (index >= splitIndex) {
+        context.renderChild(child);
+      }
+      index++;
+    }
+    html.endElement();
   }
 
   private boolean onlyImageChild = false;
