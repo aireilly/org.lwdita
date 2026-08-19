@@ -78,6 +78,8 @@ public class SpecializeFilterTest {
       "task_substeps",
       "task_choicetable",
       "task_default_titles",
+      "task_context_with_ol",
+      "task_context_with_ul",
     }
   )
   public void test(String name) throws Exception {
