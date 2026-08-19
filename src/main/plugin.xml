@@ -45,7 +45,9 @@
   <feature extension="dita.xsl.xslfo" file="xsl/linebreak2fo.xsl"/>
   <feature extension="dita.parser">
     <parser format="markdown" class="com.elovirta.dita.markdown.MarkdownReader"/>
-    <parser format="md" class="com.elovirta.dita.markdown.MarkdownReader"/>
+    <parser format="md" class="com.elovirta.dita.markdown.MarkdownReader">
+      <feature name="http://lwdita.org/sax/features/implicit-task-sections" value="true"/>
+    </parser>
     <parser format="mdita" class="com.elovirta.dita.markdown.MDitaReader"/>
     <parser format="mditamap" class="com.elovirta.dita.markdown.MDitamapReader"/>
     <parser format="wikidocs" class="com.elovirta.dita.markdown.MarkdownReader">
