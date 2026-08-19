@@ -138,6 +138,8 @@ public class TopicRenderer extends AbstractRenderer {
   private final boolean tightList;
   private final boolean implicitTaskSections;
   private final Map<String, String> taskSectionTitles;
+  /** Heading titles that mark the start of task steps (e.g. "procedure", "steps"). */
+  private final Set<String> taskStepsTitles;
 
   //  private TableBlock currentTableNode;
   private int currentTableColumn;
@@ -161,10 +163,16 @@ public class TopicRenderer extends AbstractRenderer {
     implicitTaskSections = DitaRenderer.IMPLICIT_TASK_SECTIONS.get(options);
     final Map<String, List<String>> configured = DitaRenderer.IMPLICIT_TASK_SECTION_TITLES.get(options);
     final Map<String, String> titleMap = new HashMap<>();
-    configured.forEach((sectionName, titles) ->
-      titles.forEach(title -> titleMap.put(title.toLowerCase(), sectionName))
-    );
+    final Set<String> stepsTitles = new HashSet<>();
+    configured.forEach((sectionName, titles) -> {
+      if (sectionName.equals(TASK_STEPS.localName)) {
+        titles.forEach(title -> stepsTitles.add(title.toLowerCase()));
+      } else {
+        titles.forEach(title -> titleMap.put(title.toLowerCase(), sectionName));
+      }
+    });
     taskSectionTitles = Collections.unmodifiableMap(titleMap);
+    taskStepsTitles = Collections.unmodifiableSet(stepsTitles);
   }
 
   @Override
@@ -579,6 +587,18 @@ public class TopicRenderer extends AbstractRenderer {
     if (inSection) {
       html.endElement(); // section or example
       inSection = false;
+    }
+    // Steps marker heading (e.g. "Procedure"/"Steps") inside a task: the open
+    // implicit section is now closed, so the following list renders as <steps>.
+    // The heading maps to no element because a DITA steps element has no title.
+    if (
+      !mditaCoreProfile &&
+      inTask &&
+      implicitTaskSections &&
+      taskStepsTitles.contains(node.getText().toString().trim().toLowerCase()) &&
+      containsSome(header.classes, sections.keySet()) == null
+    ) {
+      return;
     }
     final DitaClass cls;
     final boolean isSection;

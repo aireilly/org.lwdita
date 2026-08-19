@@ -125,12 +125,27 @@ public class MarkdownReaderTest extends AbstractReaderTest {
   }
 
   @Test
+  public void testImplicitTaskSectionsWithProcedure() throws Exception {
+    reader.setFeature("http://lwdita.org/sax/features/implicit-task-sections", true);
+
+    run(getSrc() + "task/task_procedure_marker.md", getExp() + "task/task_procedure_marker.dita");
+  }
+
+  @Test
   public void testImplicitTaskSectionsCustomTitles() throws Exception {
     reader.setFeature("http://lwdita.org/sax/features/implicit-task-sections", true);
     reader.setProperty("http://lwdita.org/sax/properties/implicit-task-sections/prereq", List.of("voraussetzungen"));
     reader.setProperty("http://lwdita.org/sax/properties/implicit-task-sections/result", List.of("ergebnis"));
 
     run(getSrc() + "task/task_custom_titles.md", getExp() + "task/task_custom_titles.dita");
+  }
+
+  @Test
+  public void testImplicitTaskSectionsCustomStepsTitle() throws Exception {
+    reader.setFeature("http://lwdita.org/sax/features/implicit-task-sections", true);
+    reader.setProperty("http://lwdita.org/sax/properties/implicit-task-sections/steps", List.of("vorgehensweise"));
+
+    run(getSrc() + "task/task_custom_steps.md", getExp() + "task/task_custom_steps.dita");
   }
 
   @ParameterizedTest

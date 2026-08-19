@@ -70,6 +70,7 @@ public class DitaRenderer {
     (Map<String, List<String>>) (Map<String, ?>) Map.of(
       "prereq", List.of("prerequisites"),
       "context", List.of("about this task"),
+      "steps", List.of("procedure", "steps"),
       "result", List.of("verification"),
       "postreq", List.of("next steps")
     )

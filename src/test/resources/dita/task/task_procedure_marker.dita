@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<task xmlns:ditaarch="http://dita.oasis-open.org/architecture/2005/"
+      class="- topic/topic task/task "
+      ditaarch:DITAArchVersion="2.0"
+      specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product"
+      id="install-the-software">
+   <title class="- topic/title ">Install the software</title>
+   <shortdesc class="- topic/shortdesc ">This procedure installs the software from the command line.</shortdesc>
+   <taskbody class="- topic/body task/taskbody ">
+      <prereq class="- topic/section task/prereq " id="prerequisites">
+         <title class="- topic/title ">Prerequisites</title>
+         <p class="- topic/p ">You have administrator access.</p>
+      </prereq>
+      <context class="- topic/section task/context " id="about-this-task">
+         <title class="- topic/title ">About this task</title>
+         <p class="- topic/p ">The installer applies the default configuration.</p>
+      </context>
+      <steps class="- topic/ol task/steps ">
+         <step class="- topic/li task/step ">
+            <cmd class="- topic/ph task/cmd ">Run the installer.</cmd>
+         </step>
+         <step class="- topic/li task/step ">
+            <cmd class="- topic/ph task/cmd ">Accept the license agreement.</cmd>
+         </step>
+      </steps>
+      <result class="- topic/section task/result " id="verification">
+         <title class="- topic/title ">Verification</title>
+         <p class="- topic/p ">Confirm that the software is installed.</p>
+      </result>
+   </taskbody>
+</task>

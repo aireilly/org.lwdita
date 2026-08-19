@@ -82,9 +82,14 @@ public class MarkdownReader implements XMLReader {
    *     <dt><code>http://lwdita.org/sax/features/implicit-substeps</code></dt>
    *     <dd>Treat ordered list inside step as substeps</dd>
    *     <dt><code>http://lwdita.org/sax/features/implicit-task-sections</code></dt>
-   *     <dd>Map well-known heading titles to task section elements. Configure title
+   *     <dd>Map well-known heading titles to task section elements. Recognized section keys are
+   *     {@code prereq}, {@code context}, {@code steps}, {@code result}, and {@code postreq}. The
+   *     {@code steps} key marks the start of the task steps (default titles "Procedure" and "Steps"):
+   *     its heading is discarded and the following ordered list becomes {@code <steps>}, so a single
+   *     task can carry heading-based prereq/context sections alongside real steps. Configure title
    *     alternatives per section via properties, e.g.
-   *     {@code setProperty("http://lwdita.org/sax/properties/implicit-task-sections/context", List.of("about this task"))}.</dd>
+   *     {@code setProperty("http://lwdita.org/sax/properties/implicit-task-sections/context", List.of("about this task"))}
+   *     or {@code setProperty("http://lwdita.org/sax/properties/implicit-task-sections/steps", List.of("procedure", "steps"))}.</dd>
    * </dl>
    */
   static final Map<String, DataKey<Boolean>> FEATURES;
