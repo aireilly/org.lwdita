@@ -52,7 +52,6 @@ public class MarkdownReaderTest extends AbstractReaderTest {
       "body_attributes.md",
       "codeblock.md",
       "comment.md",
-      "concept.md",
       "conkeyref.md",
       "conref.md",
       "dl.md",
@@ -75,20 +74,15 @@ public class MarkdownReaderTest extends AbstractReaderTest {
       "missing_root_header.md",
       "missing_root_header_with_yaml.md",
       "multiple_top_level.md",
-      "multiple_top_level_specialized.md",
       "note.md",
       "ol.md",
       "quote.md",
-      "reference.md",
       "short.md",
       "shortdesc.md",
       "table-width.md",
       "table.md",
-      "task.md",
-      "task/task_choices.md",
       "task/task_choicetable.md",
       "taskTight.md",
-      "taskOneStep.md",
       "testBOM.md",
       "testNoBOM.md",
       "ul.md",
@@ -110,7 +104,7 @@ public class MarkdownReaderTest extends AbstractReaderTest {
   @ParameterizedTest
   @CsvSource(
     {
-      "task/task_choices_implicit.md,task/task_choices.dita",
+      "task/task_choices_implicit.md,md/task/task_choices.dita",
       "task/task_choicetable_implicit.md,task/task_choicetable.dita",
       "task/task_substeps_implicit.md,task/task_substeps.dita",
     }
@@ -137,6 +131,31 @@ public class MarkdownReaderTest extends AbstractReaderTest {
     reader.setProperty("http://lwdita.org/sax/properties/implicit-task-sections/result", List.of("ergebnis"));
 
     run(getSrc() + "task/task_custom_titles.md", getExp() + "task/task_custom_titles.dita");
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+    {
+      "concept.md,md/concept.dita",
+      "reference.md,md/reference.dita",
+      "task.md,md/task.dita",
+      "taskOneStep.md,md/taskOneStep.dita",
+      "multiple_top_level_specialized.md,md/multiple_top_level_specialized.dita",
+      "task/task_choices.md,md/task/task_choices.dita",
+    }
+  )
+  public void testShortdescFromTypedTitleTopics(String src, String exp) throws Exception {
+    run(getSrc() + src, getExp() + exp);
+  }
+
+  @Test
+  public void testShortdescFromTypedTitle() throws Exception {
+    run(getSrc() + "shortdesc_typed_title.md", getExp() + "shortdesc_typed_title.dita");
+  }
+
+  @Test
+  public void testNoShortdescFromUntypedTitle() throws Exception {
+    run(getSrc() + "shortdesc_untyped_title.md", getExp() + "shortdesc_untyped_title.dita");
   }
 
   @Test
@@ -348,12 +367,10 @@ public class MarkdownReaderTest extends AbstractReaderTest {
         new Event("startElement", "title", 1, 1),
         new Event("characters", "Task", 1, 1),
         new Event("endElement", "title", 1, 1),
-        new Event("startElement", "taskbody", 1, 1),
-        new Event("startElement", "context", 3, 1),
-        new Event("startElement", "p", 3, 1),
+        new Event("startElement", "shortdesc", 3, 1),
         new Event("characters", "Context", 3, 1),
-        new Event("endElement", "p", 3, 1),
-        new Event("endElement", "context", 5, 1),
+        new Event("endElement", "shortdesc", 3, 1),
+        new Event("startElement", "taskbody", 1, 1),
         new Event("startElement", "steps", 5, 1),
         new Event("startElement", "step", 5, 1),
         new Event("startElement", "cmd", 5, 5),

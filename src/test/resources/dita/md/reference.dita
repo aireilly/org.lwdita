@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<reference xmlns:ditaarch="http://dita.oasis-open.org/architecture/2005/"
+           class="- topic/topic reference/reference "
+           ditaarch:DITAArchVersion="2.0"
+           specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product"
+           id="reference">
+   <title class="- topic/title ">Reference</title>
+   <shortdesc class="- topic/shortdesc ">This is reference.</shortdesc>
+   <refbody class="- topic/body reference/refbody "/>
+</reference>

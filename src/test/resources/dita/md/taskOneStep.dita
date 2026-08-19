@@ -9,16 +9,11 @@
    <taskbody class="- topic/body task/taskbody ">
       <steps class="- topic/ol task/steps ">
          <step class="- topic/li task/step ">
-            <cmd class="- topic/ph task/cmd ">Run the installer.</cmd>
+            <cmd class="- topic/ph task/cmd ">Command</cmd>
+            <info class="- topic/itemgroup task/info ">
+               <p class="- topic/p ">Info.</p>
+            </info>
          </step>
       </steps>
-      <result class="- topic/section task/result " id="verification">
-         <title class="- topic/title ">Verification</title>
-         <p class="- topic/p ">The software is installed.</p>
-      </result>
-      <postreq class="- topic/section task/postreq " id="next-steps">
-         <title class="- topic/title ">Next steps</title>
-         <p class="- topic/p ">Configure the license.</p>
-      </postreq>
    </taskbody>
 </task>

@@ -88,6 +88,8 @@ public class TopicRenderer extends AbstractRenderer {
     .build();
   private static final Attributes SHORTDESC_ATTS = buildAtts(TOPIC_SHORTDESC);
   private static final Attributes PROLOG_ATTS = buildAtts(TOPIC_PROLOG);
+  /** Title type classes that pull the following paragraph into a shortdesc. */
+  private static final Set<String> SHORTDESC_TITLE_TYPES = Set.of("concept", "task", "reference");
   private static final Attributes BLOCKQUOTE_ATTS = buildAtts(TOPIC_LQ);
   private static final Attributes UL_ATTS = buildAtts(TOPIC_UL);
   private static final Attributes DL_ATTS = buildAtts(TOPIC_DL);
@@ -669,7 +671,7 @@ public class TopicRenderer extends AbstractRenderer {
       html.startElement(node, TOPIC_TITLE, TITLE_ATTS);
       context.renderChildren(node);
       html.endElement(); // title
-      if (shortdescParagraph && node.getNext() instanceof Paragraph) {
+      if (extractShortdesc(header) && node.getNext() instanceof Paragraph) {
         html.startElement(node.getNext(), TOPIC_SHORTDESC, SHORTDESC_ATTS);
         context.renderChildren(node.getNext());
         html.endElement(); // shortdesc
@@ -1051,7 +1053,9 @@ public class TopicRenderer extends AbstractRenderer {
   private void render(final Paragraph node, final NodeRendererContext context, final SaxWriter html) {
     if (isAttributesParagraph(node)) {
       // Attributes for previous block
-    } else if (shortdescParagraph && !inSection && node.getPrevious() instanceof Heading) {
+    } else if (
+      !inSection && node.getPrevious() instanceof Heading && extractShortdesc(titleOfPreviousHeading(node))
+    ) {
       // Pulled by Heading
     } else if (containsImage(node)) {
       onlyImageChild = true;
@@ -1081,6 +1085,29 @@ public class TopicRenderer extends AbstractRenderer {
       }
       printTag(node, context, html, TOPIC_P, atts);
     }
+  }
+
+  /**
+   * Whether the paragraph following a topic title should be pulled into a shortdesc. True when the
+   * global shortdesc-paragraph feature is on, or when the title carries a concept/task/reference type
+   * class.
+   */
+  private boolean extractShortdesc(final Title header) {
+    return shortdescParagraph || (header != null && !Collections.disjoint(header.classes, SHORTDESC_TITLE_TYPES));
+  }
+
+  /** Title of the heading immediately preceding {@code node}, or null if the previous sibling is not a heading. */
+  private Title titleOfPreviousHeading(final Node node) {
+    if (mditaCoreProfile) {
+      return null;
+    }
+    final Node prev = node.getPrevious();
+    if (!(prev instanceof Heading)) {
+      return null;
+    }
+    return prev.getFirstChild() instanceof AnchorLink
+      ? Title.getFromChildren(prev.getFirstChild())
+      : Title.getFromChildren(prev);
   }
 
   /**

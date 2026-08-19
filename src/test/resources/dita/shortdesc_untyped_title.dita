@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<topic xmlns:ditaarch="http://dita.oasis-open.org/architecture/2005/"
+       class="- topic/topic "
+       ditaarch:DITAArchVersion="2.0"
+       specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product"
+       id="configure-logging">
+   <title class="- topic/title ">Configure logging</title>
+   <body class="- topic/body ">
+      <p class="- topic/p ">Logging captures runtime events for later analysis.</p>
+      <p class="- topic/p ">Enable it in the settings file before starting the service.</p>
+   </body>
+</topic>
