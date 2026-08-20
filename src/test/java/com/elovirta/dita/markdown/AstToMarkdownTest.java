@@ -68,6 +68,7 @@ public class AstToMarkdownTest {
       "topic",
       "ul",
       "yaml",
+      "raw_dita",
     }
   )
   public void testAst(String name) throws Exception {
