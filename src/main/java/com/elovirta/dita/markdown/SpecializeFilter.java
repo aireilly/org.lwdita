@@ -65,6 +65,13 @@ public class SpecializeFilter extends XMLFilterImpl {
   private boolean stepsCompleted = false;
   private int choicetableColumn = 0;
   private boolean inChoicetableHead = false;
+  // Section elements such as prereq/context/result/postreq/tasktroubleshooting have a
+  // "no title" content model, but the generic heading-to-section renderer always emits a
+  // <title> for the section it renames from. Suppress that title (and its content) instead
+  // of emitting DTD-invalid output.
+  private boolean expectTitleSuppression = false;
+  private boolean suppressingTitle = false;
+  private int titleSuppressDepth = -1;
 
   private static final Map<String, DitaClass> TASK_SECTIONS = Map.of(
     TASK_PREREQ.localName,
@@ -94,6 +101,18 @@ public class SpecializeFilter extends XMLFilterImpl {
   @Override
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
     depth++;
+
+    if (suppressingTitle) {
+      return;
+    }
+    if (expectTitleSuppression) {
+      expectTitleSuppression = false;
+      if (localName.equals(TOPIC_TITLE.localName)) {
+        suppressingTitle = true;
+        titleSuppressDepth = depth;
+        return;
+      }
+    }
 
     if (localName.equals(TOPIC_TOPIC.localName)) {
       depth = 1;
@@ -129,7 +148,23 @@ public class SpecializeFilter extends XMLFilterImpl {
   }
 
   @Override
+  public void characters(char[] ch, int start, int length) throws SAXException {
+    if (suppressingTitle) {
+      return;
+    }
+    super.characters(ch, start, length);
+  }
+
+  @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
+    if (suppressingTitle) {
+      if (localName.equals(TOPIC_TITLE.localName) && depth == titleSuppressDepth) {
+        suppressingTitle = false;
+      }
+      depth--;
+      return;
+    }
+
     switch (typeStack.peek()) {
       case TASK:
         endElementTask(uri, localName, qName);
@@ -191,6 +226,7 @@ public class SpecializeFilter extends XMLFilterImpl {
             final DitaClass sectionClass = TASK_SECTIONS.get(outputclass.trim());
             if (sectionClass != null) {
               renameStartElement(sectionClass, atts);
+              expectTitleSuppression = true;
               break;
             }
           }
@@ -244,6 +280,18 @@ public class SpecializeFilter extends XMLFilterImpl {
           }
           taskState = TaskState.CHOICES;
           renameStartElement(TASK_CHOICES, atts);
+        } else if (
+          depth == 5 &&
+          (taskState == TaskState.STEP || taskState == TaskState.INFO) &&
+          (IMPLICIT_SUBSTEPS.get(options) || getOutputclass(atts).contains(TASK_SUBSTEPS.localName))
+        ) {
+          // Same promotion an ordered list gets: a plain <ul> directly in a step isn't a
+          // valid step child on its own, so treat it as substeps like <ol> does by default.
+          if (taskState == TaskState.INFO) {
+            doEndElement(TASK_INFO);
+          }
+          taskState = TaskState.SUBSTEPS;
+          renameStartElement(TASK_SUBSTEPS, atts);
         } else {
           doStartElement(uri, localName, qName, atts);
         }
@@ -457,6 +505,8 @@ public class SpecializeFilter extends XMLFilterImpl {
           stepsCompleted = true;
           taskState = TaskState.POST_STEPS;
         } else if (depth == 5 && taskState == TaskState.CHOICES) {
+          taskState = TaskState.STEP;
+        } else if (depth == 5 && taskState == TaskState.SUBSTEPS) {
           taskState = TaskState.STEP;
         }
         doEndElement(uri, localName, qName);

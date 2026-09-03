@@ -13,11 +13,9 @@
          </step>
       </steps>
       <prereq class="- topic/section task/prereq " id="voraussetzungen">
-         <title class="- topic/title ">Voraussetzungen</title>
          <p class="- topic/p ">You need admin access.</p>
       </prereq>
       <result class="- topic/section task/result " id="ergebnis">
-         <title class="- topic/title ">Ergebnis</title>
          <p class="- topic/p ">The software is installed.</p>
       </result>
    </taskbody>

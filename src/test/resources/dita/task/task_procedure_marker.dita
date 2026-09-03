@@ -8,11 +8,9 @@
    <shortdesc class="- topic/shortdesc ">This procedure installs the software from the command line.</shortdesc>
    <taskbody class="- topic/body task/taskbody ">
       <prereq class="- topic/section task/prereq " id="prerequisites">
-         <title class="- topic/title ">Prerequisites</title>
          <p class="- topic/p ">You have administrator access.</p>
       </prereq>
       <context class="- topic/section task/context " id="about-this-task">
-         <title class="- topic/title ">About this task</title>
          <p class="- topic/p ">The installer applies the default configuration.</p>
       </context>
       <steps class="- topic/ol task/steps ">
@@ -24,7 +22,6 @@
          </step>
       </steps>
       <result class="- topic/section task/result " id="verification">
-         <title class="- topic/title ">Verification</title>
          <p class="- topic/p ">Confirm that the software is installed.</p>
       </result>
    </taskbody>
