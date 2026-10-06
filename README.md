@@ -125,18 +125,13 @@ To release and build distribution:
 1.  Tag release in `master` branch using semantic version as tag name,
     e.g. `1.2.3`.
 
-    > **Note**
-    > In this fork the `dist` workflow is gated on
-    > `github.repository == 'jelovirt/org.lwdita'`, so pushing a tag
-    > produces nothing. Build the ZIP with `./gradlew dist` and attach it
-    > to the release yourself, e.g.
-    > `gh release create v1.2.3 build/distributions/org.lwdita-1.2.3.zip`.
-
     [GitHub Actions](.github/workflows/dist.yml) will create
     * a distribution ZIP and upload it to GitHub Release for the tag,
     * a JAR release that is published to [github.com/jelovirt/org.lwdita/packages](https://github.com/jelovirt/org.lwdita/packages/),
     * a pull request to [github.com/dita-ot/registry](https://github.com/dita-ot/registry)
-to update the release to DITA-OT plug-in registry.
+to update the release to DITA-OT plug-in registry. This last step runs only
+on `jelovirt/org.lwdita`; a fork gets the ZIP and the JAR, under its own
+repository name.
 
 ## Donating
 

@@ -14,7 +14,6 @@ permissions:
 
 jobs:
   dist:
-    if: github.repository == 'jelovirt/org.lwdita'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -55,6 +54,9 @@ jobs:
   registry:
     needs: dist
     runs-on: ubuntu-latest
+    # Upstream only: this opens a PR against dita-ot/registry through
+    # jelovirt/registry with a secret a fork does not have.
+    if: github.repository == 'jelovirt/org.lwdita'
     steps:
       - name: Set variables
         run: |
@@ -68,7 +70,7 @@ jobs:
       - name: Update registry
         working-directory: registry
         run: |
-          URL=https://github.com/jelovirt/org.lwdita/releases/download/${{ env.VERSION }}/org.lwdita-${{ env.VERSION }}.zip
+          URL=https://github.com/${{ github.repository }}/releases/download/${{ env.VERSION }}/org.lwdita-${{ env.VERSION }}.zip
           cat ${{ env.PLUGIN_NAME }}.json \
             | jq '.[length -1]' \
             | jq --arg url "$URL" '. | .url|=$url' \
@@ -90,4 +92,4 @@ jobs:
           body: |
             Add plug-in `${{ env.PLUGIN_NAME }}` version `${{ env.VERSION }}`.
             
-            * [Release notes](https://github.com/jelovirt/org.lwdita/releases/tag/${{ env.VERSION }})
+            * [Release notes](https://github.com/${{ github.repository }}/releases/tag/${{ env.VERSION }})
