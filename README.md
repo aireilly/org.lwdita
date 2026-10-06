@@ -125,6 +125,12 @@ To release and build distribution:
 1.  Tag release in `master` branch using semantic version as tag name,
     e.g. `1.2.3`.
 
+    > **Note**
+    > GitHub disables Actions on a new fork until they are enabled once in
+    > the repository's Actions tab. Until then a pushed tag produces no run
+    > at all, and the ZIP has to be built with `./gradlew dist` and attached
+    > by hand.
+
     [GitHub Actions](.github/workflows/dist.yml) will create
     * a distribution ZIP and upload it to GitHub Release for the tag,
     * a JAR release that is published to [github.com/jelovirt/org.lwdita/packages](https://github.com/jelovirt/org.lwdita/packages/),
