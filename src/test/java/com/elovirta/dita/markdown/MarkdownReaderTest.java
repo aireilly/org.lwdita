@@ -141,6 +141,32 @@ public class MarkdownReaderTest extends AbstractReaderTest {
     );
   }
 
+  // A reader feature must survive $schema selecting the parser: the schema owns
+  // the flavor, not the behavior flags configured on the reader.
+  @Test
+  public void testImplicitTaskSectionsWithSchema() throws Exception {
+    reader.setFeature("http://lwdita.org/sax/features/implicit-task-sections", true);
+
+    run(getSrc() + "schema/task_sections.md", getExp() + "schema/task_sections.dita");
+  }
+
+  // A reader property must survive $schema selecting the parser.
+  @Test
+  public void testImplicitTaskSectionsCustomTitlesWithSchema() throws Exception {
+    reader.setFeature("http://lwdita.org/sax/features/implicit-task-sections", true);
+    reader.setProperty("http://lwdita.org/sax/properties/implicit-task-sections/steps", List.of("vorgehensweise"));
+
+    run(getSrc() + "schema/task_custom_steps.md", getExp() + "schema/task_custom_steps.dita");
+  }
+
+  // $schema owns the flavor: it must not be overridden by reader features.
+  @Test
+  public void testSchemaWinsOverReaderProfileFeature() throws Exception {
+    reader.setFeature("http://lwdita.org/sax/features/mdita-core-profile", true);
+
+    run(getSrc() + "schema/task.md", getExp() + "schema/task.dita");
+  }
+
   @Test
   public void testImplicitTaskSectionsCustomTitles() throws Exception {
     reader.setFeature("http://lwdita.org/sax/features/implicit-task-sections", true);

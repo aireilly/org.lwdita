@@ -137,4 +137,13 @@ public class DefaultSchemaProvider implements SchemaProvider {
   public MarkdownParser createMarkdownParser(URI schema) {
     return new MarkdownParserImpl(SCHEMA_OPTIONS.get(schema));
   }
+
+  @Override
+  public MarkdownParser createMarkdownParser(URI schema, DataSet overrides) {
+    final DataSet schemaOptions = SCHEMA_OPTIONS.get(schema);
+    if (overrides == null || overrides.getAll().isEmpty()) {
+      return new MarkdownParserImpl(schemaOptions);
+    }
+    return new MarkdownParserImpl(new MutableDataSet(schemaOptions).setAll(overrides).toImmutable());
+  }
 }

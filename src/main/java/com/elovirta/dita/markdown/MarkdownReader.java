@@ -119,6 +119,29 @@ public class MarkdownReader implements XMLReader {
 
   private final MutableDataSet options;
 
+  /**
+   * Options the caller set explicitly through {@link #setFeature} or {@link #setProperty}.
+   *
+   * <p>A {@code $schema} key in the document selects a parser from a {@link SchemaProvider},
+   * whose options are built from scratch rather than from this reader's. Without these
+   * recorded overrides, every feature configured on the reader, including the ones
+   * {@code plugin.xml} sets per format, would be dropped for any document that declares a
+   * schema. The keys in {@link #SCHEMA_OWNED_KEYS} are deliberately not recorded: the schema
+   * exists to choose the Markdown flavor and topic type, so it keeps the last word on those.
+   */
+  private final MutableDataSet schemaOverrides = new MutableDataSet();
+
+  /** Options a {@code $schema} declaration owns, so a reader feature never overrides them. */
+  private static final Set<DataKey<Boolean>> SCHEMA_OWNED_KEYS = Set.of(
+    DitaRenderer.SPECIALIZATION,
+    DitaRenderer.SPECIALIZATION_CONCEPT,
+    DitaRenderer.SPECIALIZATION_TASK,
+    DitaRenderer.SPECIALIZATION_REFERENCE,
+    DitaRenderer.MAP,
+    DitaRenderer.MDITA_CORE_PROFILE,
+    DitaRenderer.MDITA_EXTENDED_PROFILE
+  );
+
   EntityResolver resolver;
   ContentHandler contentHandler;
   ErrorHandler errorHandler;
@@ -225,6 +248,9 @@ public class MarkdownReader implements XMLReader {
         final DataKey<Boolean> option = FEATURES.get(name);
         if (option != null) {
           options.set(option, value);
+          if (!SCHEMA_OWNED_KEYS.contains(option)) {
+            schemaOverrides.set(option, value);
+          }
         } else {
           throw new SAXNotRecognizedException(String.format(MESSAGES.getString("error.unsupported_feature"), name));
         }
@@ -251,14 +277,17 @@ public class MarkdownReader implements XMLReader {
       final Map<String, List<String>> current = new HashMap<>(DitaRenderer.IMPLICIT_TASK_SECTION_TITLES.get(options));
       current.put(sectionName, (List<String>) value);
       options.set(DitaRenderer.IMPLICIT_TASK_SECTION_TITLES, Collections.unmodifiableMap(current));
+      schemaOverrides.set(DitaRenderer.IMPLICIT_TASK_SECTION_TITLES, Collections.unmodifiableMap(current));
       return;
     }
     switch (name) {
       case "https://dita-ot.org/property/formats":
         options.set(FORMATS, (Collection<String>) value);
+        schemaOverrides.set(FORMATS, (Collection<String>) value);
         break;
       case "https://dita-ot.org/property/processing-mode":
         options.set(PROCESSING_MODE, "strict".equals(value));
+        schemaOverrides.set(PROCESSING_MODE, "strict".equals(value));
         break;
       case "http://xml.org/sax/properties/declaration-handler":
       case "http://xml.org/sax/properties/document-xml-version":
@@ -340,7 +369,7 @@ public class MarkdownReader implements XMLReader {
         .stream()
         .filter(p -> p.get().isSupportedSchema(value))
         .findAny()
-        .map(s -> s.get().createMarkdownParser(value));
+        .map(s -> s.get().createMarkdownParser(value, schemaOverrides.toImmutable()));
       if (markdownParser.isEmpty()) {
         if (errorHandler != null) {
           errorHandler.error(
