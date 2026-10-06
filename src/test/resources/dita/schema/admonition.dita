@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<task xmlns:ditaarch="http://dita.oasis-open.org/architecture/2005/"
+      class="- topic/topic task/task "
+      ditaarch:DITAArchVersion="2.0"
+      specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product"
+      id="install-the-software">
+   <title class="- topic/title ">Install the software</title>
+   <shortdesc class="- topic/shortdesc ">Shortdesc.</shortdesc>
+   <prolog class="- topic/prolog "/>
+   <taskbody class="- topic/body task/taskbody ">
+      <steps class="- topic/ol task/steps ">
+         <step class="- topic/li task/step ">
+            <cmd class="- topic/ph task/cmd ">Run the installer.</cmd>
+         </step>
+      </steps>
+      <result class="- topic/section task/result ">
+         <note class="- topic/note " type="note">
+            <p class="- topic/p ">Back up your data first.</p>
+         </note>
+      </result>
+   </taskbody>
+</task>

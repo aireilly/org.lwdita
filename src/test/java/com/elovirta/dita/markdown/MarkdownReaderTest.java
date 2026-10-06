@@ -167,6 +167,15 @@ public class MarkdownReaderTest extends AbstractReaderTest {
     run(getSrc() + "schema/task.md", getExp() + "schema/task.dita");
   }
 
+  // Admonitions must work the same whether the topic type comes from $schema or a
+  // .task class: same format, so the same block syntax.
+  @Test
+  public void testAdmonitionWithSchema() throws Exception {
+    reader.setFeature("http://lwdita.org/sax/features/implicit-task-sections", true);
+
+    run(getSrc() + "schema/admonition.md", getExp() + "schema/admonition.dita");
+  }
+
   @Test
   public void testImplicitTaskSectionsCustomTitles() throws Exception {
     reader.setFeature("http://lwdita.org/sax/features/implicit-task-sections", true);
