@@ -68,6 +68,159 @@ content as Markdown.
   [GitBook](https://www.gitbook.com), use the `markdown_gitbook`
   transtype.
 
+## Selecting a topic type with `$schema`
+
+A `$schema` key in the YAML front matter tells the plug-in which DITA topic
+type to produce. It must be the **first** key, on the line directly after the
+opening `---`; anywhere else it is ignored without warning and the file
+converts as a generic topic.
+
+| Type | XSD form | RELAX NG form |
+|------|----------|---------------|
+| Topic | `urn:oasis:names:tc:dita:xsd:topic.xsd` | `urn:oasis:names:tc:dita:rng:topic.rng` |
+| Concept | `urn:oasis:names:tc:dita:xsd:concept.xsd` | `urn:oasis:names:tc:dita:rng:concept.rng` |
+| Task | `urn:oasis:names:tc:dita:xsd:task.xsd` | `urn:oasis:names:tc:dita:rng:task.rng` |
+| Reference | `urn:oasis:names:tc:dita:xsd:reference.xsd` | `urn:oasis:names:tc:dita:rng:reference.rng` |
+| Map | `urn:oasis:names:tc:dita:xsd:map.xsd` | `urn:oasis:names:tc:dita:rng:map.rng` |
+
+The MDITA profiles are selected the same way, with
+`urn:oasis:names:tc:mdita:xsd:topic.xsd`, its `:extended:` synonym, or
+`urn:oasis:names:tc:mdita:core:xsd:topic.xsd`. They parse as Lightweight DITA,
+so they produce no specialization: every H2 becomes a `<section>`, `{...}`
+attribute blocks are not parsed, and the element set is reduced.
+
+> **Note**
+> The infix and the suffix have to match. `xsd` goes with `.xsd` and `rng`
+> goes with `.rng`. A mixed value such as
+> `urn:oasis:names:tc:dita:xsd:task.rng` is not registered, and the plug-in
+> reports it before falling back to the default parser:
+>
+> ```
+> [DOTJ088E] XML parsing error: Markdown schema
+> urn:oasis:names:tc:dita:xsd:task.rng not recognized,
+> using default Markdown parser
+> ```
+>
+> For a task the visible symptom usually arrives later, as `Level 2 section
+> title must be higher level than parent topic title 2`, because the topic is
+> no longer a task and its section headings become nested topics.
+
+A class on the H1 heading, `# Installing the CLI {.task}`, is the older way to
+select a type and remains equivalent.
+
+The topic `@id` comes from the `id:` key, or from a slug of the title when
+`id:` is absent. Set it explicitly for any topic that is linked to, so
+renaming the title does not change the id.
+
+### Concept
+
+```markdown
+---
+$schema: urn:oasis:names:tc:dita:xsd:concept.xsd
+id: about-containers
+---
+
+# About containers
+
+A container packages an application with its dependencies so it runs the same everywhere.
+
+Containers share the host kernel, so they start faster and use less memory than virtual machines.
+
+!!! note
+    A container image is a template; a container is a running instance of one.
+```
+
+The title becomes `<title>`, the first paragraph `<shortdesc>`, the rest
+`<conbody>`, and the admonition a `<note type="note">`.
+
+### Task
+
+````markdown
+---
+$schema: urn:oasis:names:tc:dita:xsd:task.xsd
+id: installing-the-cli
+---
+
+# Installing the CLI
+
+Install the CLI to manage resources from a terminal.
+
+## Prerequisites
+
+-   Administrator access on the workstation.
+-   `curl` on the `PATH`.
+
+## About this task
+
+The installer downloads a signed binary and places it in `/usr/local/bin`.
+
+## Procedure
+
+1.  Download the archive:
+
+    ```bash
+    curl -LO https://example.com/cli.tar.gz
+    ```
+
+2.  Extract and install it:
+
+    ```bash
+    tar xzf cli.tar.gz && sudo mv cli /usr/local/bin/
+    ```
+
+## Verification
+
+Run `cli --version` and confirm it prints the version you installed.
+
+## Next steps
+
+Authenticate with `cli login`.
+````
+
+This produces `<prereq>`, `<context>`, `<steps>` with a `<step>` per list item,
+`<result>`, and `<postreq>`. The section headings are mapped by the
+`implicit-task-sections` feature, which `plugin.xml` enables for the `md`
+format. The default titles are:
+
+| Heading | Element |
+|---------|---------|
+| Prerequisites | `<prereq>` |
+| About this task | `<context>` |
+| Procedure, Steps | the marker for `<steps>`; the heading itself maps to no element |
+| Verification | `<result>` |
+| Next steps | `<postreq>` |
+
+Any other H2 in a task becomes a nested topic rather than a section, so keep
+examples and troubleshooting inside these sections or in a separate topic.
+Configure the titles per section with
+`setProperty("http://lwdita.org/sax/properties/implicit-task-sections/context", List.of("about this task"))`.
+
+The first paragraph after the title is the `<shortdesc>`, so it coexists with
+an `About this task` section. A **second** paragraph before the first heading
+becomes a `<context>` of its own, which together with `About this task` gives
+two `<context>` elements and fails the task DTD.
+
+### Reference
+
+```markdown
+---
+$schema: urn:oasis:names:tc:dita:xsd:reference.xsd
+id: cli-options
+---
+
+# CLI options
+
+The following options apply to every `cli` subcommand.
+
+| Option | Argument | Description |
+|--------|----------|-------------|
+| `--config` | path | Configuration file to read. |
+| `--verbose` | none | Print each request and response. |
+```
+
+The table becomes a CALS `<table>` inside `<refbody>`. In the MDITA profiles it
+would be a `<simpletable>` instead.
+
 ## Requirements
 
 | LwDITA plug-in | DITA-OT  | Java |
