@@ -1054,10 +1054,19 @@ public class TopicRenderer extends AbstractRenderer {
   /**
    * Check whether a list node has a subsequent OrderedList or BulletList
    * sibling at the same level in the AST, skipping attribute paragraphs.
+   *
+   * <p>The scan stops at a heading. A heading starts a new section, so a list
+   * after it is not a sibling of this list in the same body or section, and
+   * this list is the last one at its level. Scanning past the heading would
+   * demote the steps list of a task to a context list whenever a later
+   * section (for example "Verification") also holds a list.
    */
   private boolean hasSubsequentListSibling(Node node) {
     Node sibling = node.getNext();
     while (sibling != null) {
+      if (sibling instanceof Heading) {
+        return false;
+      }
       if (sibling instanceof OrderedList || sibling instanceof BulletList) {
         return true;
       }

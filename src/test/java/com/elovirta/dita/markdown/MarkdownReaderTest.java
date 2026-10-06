@@ -132,6 +132,16 @@ public class MarkdownReaderTest extends AbstractReaderTest {
   }
 
   @Test
+  public void testImplicitTaskSectionsWithProcedureAndResultList() throws Exception {
+    reader.setFeature("http://lwdita.org/sax/features/implicit-task-sections", true);
+
+    run(
+      getSrc() + "task/task_procedure_marker_result_list.md",
+      getExp() + "task/task_procedure_marker_result_list.dita"
+    );
+  }
+
+  @Test
   public void testImplicitTaskSectionsCustomTitles() throws Exception {
     reader.setFeature("http://lwdita.org/sax/features/implicit-task-sections", true);
     reader.setProperty("http://lwdita.org/sax/properties/implicit-task-sections/prereq", List.of("voraussetzungen"));
