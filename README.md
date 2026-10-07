@@ -179,8 +179,8 @@ Authenticate with `cli login`.
 
 This produces `<prereq>`, `<context>`, `<steps>` with a `<step>` per list item,
 `<result>`, and `<postreq>`. The section headings are mapped by the
-`implicit-task-sections` feature, which `plugin.xml` enables for the `md`
-format. The default titles are:
+`implicit-task-sections` feature, which `plugin.xml` enables for the `md` and
+`markdown` formats. The default titles are:
 
 | Heading | Element |
 |---------|---------|
@@ -199,6 +199,37 @@ The first paragraph after the title is the `<shortdesc>`, so it coexists with
 an `About this task` section. A **second** paragraph before the first heading
 becomes a `<context>` of its own, which together with `About this task` gives
 two `<context>` elements and fails the task DTD.
+
+#### Lists and tables inside a step
+
+A list nested inside a step becomes `<substeps>`, whether it is ordered or
+unordered: `implicit-substeps` defaults to true. `implicit-choices` and
+`implicit-choicetable` default to false and `plugin.xml` does not enable
+them, so a nested unordered list is not `<choices>` and a table inside a step
+stays a plain `<table>`.
+
+Select those elements per block with an outputclass instead:
+
+````markdown
+1.  Choose one:
+
+    *   Keep the defaults
+    *   Configure it by hand
+    {.choices}
+
+2.  Pick a plan:
+
+    | Option | Description |
+    |--------|-------------|
+    | Fast   | Quick setup |
+    {.choicetable}
+````
+
+Turn the implicit mappings on for a whole build with
+`setFeature("http://lwdita.org/sax/features/implicit-choices", true)` and
+`setFeature("http://lwdita.org/sax/features/implicit-choicetable", true)`.
+Enabling `implicit-choices` changes what every nested unordered list produces,
+because the choices branch is tried before the substeps one.
 
 ### Reference
 

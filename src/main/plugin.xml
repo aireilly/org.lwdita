@@ -44,7 +44,13 @@
   <feature extension="dita.xsl.html5" file="xsl/linebreak2html5.xsl"/>
   <feature extension="dita.xsl.xslfo" file="xsl/linebreak2fo.xsl"/>
   <feature extension="dita.parser">
-    <parser format="markdown" class="com.elovirta.dita.markdown.MarkdownReader"/>
+    <!-- md and markdown are the same source format under two DITA-OT names,
+         so they enable the same features. Enabling implicit task sections for
+         md alone meant the same file produced <prereq> through one topicref
+         and a nested <task> through the other. -->
+    <parser format="markdown" class="com.elovirta.dita.markdown.MarkdownReader">
+      <feature name="http://lwdita.org/sax/features/implicit-task-sections" value="true"/>
+    </parser>
     <parser format="md" class="com.elovirta.dita.markdown.MarkdownReader">
       <feature name="http://lwdita.org/sax/features/implicit-task-sections" value="true"/>
     </parser>
