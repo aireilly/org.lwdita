@@ -678,7 +678,8 @@ public class SpecializeFilter extends XMLFilterImpl {
   private Attributes stripOutputclass(Attributes atts, String valueToRemove) {
     final int idx = atts.getIndex(ATTRIBUTE_NAME_OUTPUTCLASS);
     if (idx == -1) return atts;
-    final String updated = Stream.of(atts.getValue(idx).trim().split("\\s+"))
+    final String updated = Stream
+      .of(atts.getValue(idx).trim().split("\\s+"))
       .filter(token -> !token.equals(valueToRemove))
       .collect(Collectors.joining(" "));
     final AttributesImpl result = new AttributesImpl(atts);

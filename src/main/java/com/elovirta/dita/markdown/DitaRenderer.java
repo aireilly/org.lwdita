@@ -63,18 +63,25 @@ public class DitaRenderer {
   public static final DataKey<Boolean> IMPLICIT_SUBSTEPS = new DataKey<>("IMPLICIT_SUBSTEPS", true);
   /** Map well-known heading titles to task section elements. */
   public static final DataKey<Boolean> IMPLICIT_TASK_SECTIONS = new DataKey<>("IMPLICIT_TASK_SECTIONS", false);
+
   /** Configurable title-to-section mappings for implicit task sections. Keys are section names, values are lists of title alternatives (lowercase). */
   @SuppressWarnings("unchecked")
   public static final DataKey<Map<String, List<String>>> IMPLICIT_TASK_SECTION_TITLES = new DataKey<>(
     "IMPLICIT_TASK_SECTION_TITLES",
     (Map<String, List<String>>) (Map<String, ?>) Map.of(
-      "prereq", List.of("prerequisites"),
-      "context", List.of("about this task"),
-      "steps", List.of("procedure", "steps"),
-      "result", List.of("verification"),
-      "postreq", List.of("next steps")
+      "prereq",
+      List.of("prerequisites"),
+      "context",
+      List.of("about this task"),
+      "steps",
+      List.of("procedure", "steps"),
+      "result",
+      List.of("verification"),
+      "postreq",
+      List.of("next steps")
     )
   );
+
   //  public static final DataKey<String> SOFT_BREAK = new DataKey<>("SOFT_BREAK", "\n");
   //  public static final DataKey<String> HARD_BREAK = new DataKey<>("HARD_BREAK", "<br />\n");
   //  public static final NullableDataKey<String> STRONG_EMPHASIS_STYLE_HTML_OPEN = new NullableDataKey<>(

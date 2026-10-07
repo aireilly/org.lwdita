@@ -618,7 +618,9 @@ public class TopicRenderer extends AbstractRenderer {
       if (sectionClassName != null) {
         isSection = true;
         cls = sections.get(sectionClassName);
-      } else if (implicitTaskSections && taskSectionTitles.containsKey(node.getText().toString().trim().toLowerCase())) {
+      } else if (
+        implicitTaskSections && taskSectionTitles.containsKey(node.getText().toString().trim().toLowerCase())
+      ) {
         isSection = true;
         cls = TOPIC_SECTION;
       } else {
@@ -999,7 +1001,8 @@ public class TopicRenderer extends AbstractRenderer {
       }
       if (hasSubsequentListSibling(node)) {
         final Attributes atts = new AttributesBuilder(getAttributesFromAttributesNode(node, OL_ATTS))
-          .add(ATTRIBUTE_NAME_OUTPUTCLASS, "body-ol").build();
+          .add(ATTRIBUTE_NAME_OUTPUTCLASS, "body-ol")
+          .build();
         printTag(node, context, html, TOPIC_OL, atts);
         return;
       }
@@ -1026,7 +1029,8 @@ public class TopicRenderer extends AbstractRenderer {
 
   private void renderSplitOrderedList(OrderedList node, NodeRendererContext context, SaxWriter html, int splitIndex) {
     final Attributes contextAtts = new AttributesBuilder(getAttributesFromAttributesNode(node, OL_ATTS))
-      .add(ATTRIBUTE_NAME_OUTPUTCLASS, "body-ol").build();
+      .add(ATTRIBUTE_NAME_OUTPUTCLASS, "body-ol")
+      .build();
     html.startElement(node, TOPIC_OL, contextAtts);
     int index = 0;
     for (Node child = node.getFirstChild(); child != null; child = child.getNext()) {
@@ -1090,9 +1094,7 @@ public class TopicRenderer extends AbstractRenderer {
   private void render(final Paragraph node, final NodeRendererContext context, final SaxWriter html) {
     if (isAttributesParagraph(node)) {
       // Attributes for previous block
-    } else if (
-      !inSection && node.getPrevious() instanceof Heading && extractShortdesc(titleOfPreviousHeading(node))
-    ) {
+    } else if (!inSection && node.getPrevious() instanceof Heading && extractShortdesc(titleOfPreviousHeading(node))) {
       // Pulled by Heading
     } else if (containsImage(node)) {
       onlyImageChild = true;
