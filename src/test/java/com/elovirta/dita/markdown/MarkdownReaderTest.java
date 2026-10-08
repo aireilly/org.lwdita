@@ -208,6 +208,56 @@ public class MarkdownReaderTest extends AbstractReaderTest {
     run(getSrc() + src, getExp() + exp);
   }
 
+  // In a concept or a reference, an unclassed ## opens a <section> in the body, the way an
+  // author building the same topic in an XML editor would.
+  @ParameterizedTest
+  @ValueSource(
+    strings = {
+      "concept_sections.md", "reference_sections.md", "schema/concept_sections.md", "schema/reference_sections.md",
+    }
+  )
+  public void testSectionFromHeadingInTypedTopic(String file) throws Exception {
+    run(file);
+  }
+
+  // DITA sections do not nest, so a ### under a ## section is an error, not a nested topic.
+  @Test
+  public void testNestedSectionInTypedTopicFails() {
+    final SAXException e = assertThrows(SAXException.class, () -> parse("concept_nested_section.md"));
+    assertEquals(
+      "\"### Detail\" can't go here: DITA sections don't nest. Make it a \"##\" section, or move it to its own topic.",
+      rootMessage(e)
+    );
+  }
+
+  // A {.section} heading at the level of a heading that already opened a nested topic is still an
+  // error in a generic topic, and the message names both headings.
+  @Test
+  public void testSectionAfterNestedTopicFails() {
+    final SAXException e = assertThrows(SAXException.class, () -> parse("invalid_section_header.md"));
+    assertEquals(
+      "\"## A.2 {.section}\" can't be a section here: \"## A.1\" above it opened a nested topic. " +
+      "Add {.section} to \"## A.1\", or remove it from \"## A.2\".",
+      rootMessage(e)
+    );
+  }
+
+  /** Message of the innermost cause, which is where the renderer's ParseException ends up. */
+  private static String rootMessage(Throwable e) {
+    Throwable t = e;
+    while (t.getCause() != null && t.getCause() != t) {
+      t = t.getCause();
+    }
+    return t.getMessage();
+  }
+
+  private void parse(String file) throws Exception {
+    reader.setContentHandler(new XMLFilterImpl());
+    try (final InputStream in = getClass().getResourceAsStream("/" + getSrc() + file)) {
+      reader.parse(new InputSource(in));
+    }
+  }
+
   @Test
   public void testShortdescFromTypedTitle() throws Exception {
     run(getSrc() + "shortdesc_typed_title.md", getExp() + "shortdesc_typed_title.dita");

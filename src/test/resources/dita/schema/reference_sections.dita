@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<reference xmlns:ditaarch="http://dita.oasis-open.org/architecture/2005/"
+           class="- topic/topic reference/reference "
+           ditaarch:DITAArchVersion="2.0"
+           specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product"
+           id="cli-options">
+   <title class="- topic/title ">CLI options</title>
+   <shortdesc class="- topic/shortdesc ">The following options apply to every <codeph class="+ topic/ph pr-d/codeph ">cli</codeph> subcommand.</shortdesc>
+   <prolog class="- topic/prolog "/>
+   <refbody class="- topic/body reference/refbody ">
+      <section class="- topic/section " id="options">
+         <title class="- topic/title ">Options</title>
+         <table class="- topic/table ">
+            <tgroup class="- topic/tgroup " cols="2">
+               <colspec class="- topic/colspec " colname="col1"/>
+               <colspec class="- topic/colspec " colname="col2"/>
+               <thead class="- topic/thead ">
+                  <row class="- topic/row ">
+                     <entry class="- topic/entry ">Option</entry>
+                     <entry class="- topic/entry ">Argument</entry>
+                  </row>
+               </thead>
+               <tbody class="- topic/tbody ">
+                  <row class="- topic/row ">
+                     <entry class="- topic/entry "><codeph class="+ topic/ph pr-d/codeph ">--config</codeph></entry>
+                     <entry class="- topic/entry ">path</entry>
+                  </row>
+               </tbody>
+            </tgroup>
+         </table>
+      </section>
+      <example class="- topic/example " id="example">
+         <title class="- topic/title ">Example</title>
+         <codeblock class="+ topic/pre pr-d/codeblock " xml:space="preserve">cli --config ./cli.yaml status</codeblock>
+      </example>
+   </refbody>
+</reference>

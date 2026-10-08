@@ -90,6 +90,10 @@ public class TopicRenderer extends AbstractRenderer {
   private static final Attributes PROLOG_ATTS = buildAtts(TOPIC_PROLOG);
   /** Title type classes that pull the following paragraph into a shortdesc. */
   private static final Set<String> SHORTDESC_TITLE_TYPES = Set.of("concept", "task", "reference");
+  /** Title classes whose body holds sections instead of nested topics. */
+  private static final Set<String> SECTION_TOPIC_TITLE_TYPES = Set.of("concept", "reference");
+  /** Title classes that type a topic, and so keep a heading a topic rather than making it a section. */
+  private static final Set<String> TOPIC_TITLE_TYPES = Set.of("topic", "concept", "task", "reference");
   private static final Attributes BLOCKQUOTE_ATTS = buildAtts(TOPIC_LQ);
   private static final Attributes UL_ATTS = buildAtts(TOPIC_UL);
   private static final Attributes DL_ATTS = buildAtts(TOPIC_DL);
@@ -144,6 +148,12 @@ public class TopicRenderer extends AbstractRenderer {
    * so the renderer has to agree or the task-only heading handling never fires.
    */
   private final boolean specializationTask;
+  /**
+   * Whether every topic is a concept or a reference because the whole document was typed as one,
+   * through a {@code $schema} declaration. A concept or reference body holds sections, not nested
+   * topics, so an unclassed level-2 heading opens a {@code <section>} there.
+   */
+  private final boolean specializationSectionTopic;
   private final Map<String, String> taskSectionTitles;
   /** Heading titles that mark the start of task steps (e.g. "procedure", "steps"). */
   private final Set<String> taskStepsTitles;
@@ -152,10 +162,14 @@ public class TopicRenderer extends AbstractRenderer {
   private int currentTableColumn;
   private boolean inSection = false;
   private boolean inTask = false;
+  /** Whether the current root topic is a concept or a reference, so that its body holds sections. */
+  private boolean inSectionTopic = false;
 
   private final Set<String> footnotes = new HashSet<>();
   private Map<String, Integer> footnoteCount;
   private String lastId;
+  /** Title of the most recent heading that opened a topic, for the ordering-trap error message. */
+  private String lastTopicTitle = "";
 
   /**
    * Current header level.
@@ -169,6 +183,8 @@ public class TopicRenderer extends AbstractRenderer {
     tightList = DitaRenderer.TIGHT_LIST.get(options);
     implicitTaskSections = DitaRenderer.IMPLICIT_TASK_SECTIONS.get(options);
     specializationTask = DitaRenderer.SPECIALIZATION_TASK.get(options);
+    specializationSectionTopic =
+      DitaRenderer.SPECIALIZATION_CONCEPT.get(options) || DitaRenderer.SPECIALIZATION_REFERENCE.get(options);
     final Map<String, List<String>> configured = DitaRenderer.IMPLICIT_TASK_SECTION_TITLES.get(options);
     final Map<String, String> titleMap = new HashMap<>();
     final Set<String> stepsTitles = new HashSet<>();
@@ -623,6 +639,22 @@ public class TopicRenderer extends AbstractRenderer {
       ) {
         isSection = true;
         cls = TOPIC_SECTION;
+      } else if (
+        inSectionTopic && node.getLevel() > headerLevel && Collections.disjoint(header.classes, TOPIC_TITLE_TYPES)
+      ) {
+        // The body of a concept or a reference holds sections, so the heading one level below the
+        // topic title opens one. Anything deeper would nest a section, which DITA does not allow.
+        if (node.getLevel() > headerLevel + 1) {
+          throw new ParseException(
+            String.format(
+              MESSAGES.getString("error.nested_section"),
+              headingWithMarker(node),
+              "#".repeat(headerLevel + 1)
+            )
+          );
+        }
+        isSection = true;
+        cls = TOPIC_SECTION;
       } else {
         isSection = false;
         cls = null;
@@ -633,11 +665,15 @@ public class TopicRenderer extends AbstractRenderer {
     }
     if (isSection) {
       if (node.getLevel() <= headerLevel) {
+        final String heading = headingWithMarker(node);
+        final String parent = "#".repeat(headerLevel) + " " + lastTopicTitle;
         throw new ParseException(
           String.format(
-            "Level %d section title must be higher level than parent topic title %d",
-            node.getLevel(),
-            headerLevel
+            MESSAGES.getString("error.section_after_nested_topic"),
+            heading,
+            parent,
+            parent,
+            "#".repeat(node.getLevel()) + " " + stripAttributes(node.getText().toString())
           )
         );
       }
@@ -672,6 +708,7 @@ public class TopicRenderer extends AbstractRenderer {
         html.endElement(); // topic
       }
       headerLevel = node.getLevel();
+      lastTopicTitle = stripAttributes(node.getText().toString());
 
       final AttributesBuilder atts = mditaCoreProfile || mditaExtendedProfile
         ? new AttributesBuilder(TOPIC_ATTS).add(ATTRIBUTE_NAME_SPECIALIZATIONS, "(topic hi-d)(topic em-d)")
@@ -696,6 +733,7 @@ public class TopicRenderer extends AbstractRenderer {
       }
       if (!mditaCoreProfile && header != null) {
         inTask = specializationTask || header.classes.contains("task");
+        inSectionTopic = specializationSectionTopic || !Collections.disjoint(header.classes, SECTION_TOPIC_TITLE_TYPES);
       }
       html.startElement(node, TOPIC_TOPIC, atts.build());
       html.startElement(node, TOPIC_TITLE, TITLE_ATTS);
@@ -716,6 +754,16 @@ public class TopicRenderer extends AbstractRenderer {
       }
       html.startElement(node, TOPIC_BODY, BODY_ATTS);
     }
+  }
+
+  /** The heading as the author wrote it, marker included, for an error message. */
+  private static String headingWithMarker(final Heading node) {
+    return "#".repeat(node.getLevel()) + " " + node.getText().toString().trim();
+  }
+
+  /** The heading text without a trailing block-attributes group. */
+  private static String stripAttributes(final String text) {
+    return text.replaceAll("\\s*\\{[^}]*\\}\\s*$", "").trim();
   }
 
   private String getSectionId(Heading node, Title header) {

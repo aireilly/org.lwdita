@@ -583,8 +583,12 @@ public class SpecializeFilter extends XMLFilterImpl {
       default:
         if (depth == DEPTH_IN_BODY) {
           switch (localName) {
+            // DITA 2.0 refbody holds section, example, table and simpletable directly, so these
+            // never need the untitled wrapper section the default branch opens.
             case "table":
+            case "simpletable":
             case "section":
+            case "example":
               if (referenceState == ReferenceState.SECTION) {
                 referenceState = ReferenceState.BODY;
                 doEndElement(TOPIC_SECTION);

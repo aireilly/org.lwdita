@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<concept xmlns:ditaarch="http://dita.oasis-open.org/architecture/2005/"
+         class="- topic/topic concept/concept "
+         ditaarch:DITAArchVersion="2.0"
+         specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product"
+         id="deployment-overview">
+   <title class="- topic/title ">Deployment overview</title>
+   <shortdesc class="- topic/shortdesc ">A short description of the deployment.</shortdesc>
+   <conbody class="- topic/body concept/conbody ">
+      <p class="- topic/p ">Some introductory body text.</p>
+      <section class="- topic/section " id="background">
+         <title class="- topic/title ">Background</title>
+         <p class="- topic/p ">Background paragraph.</p>
+      </section>
+      <section class="- topic/section " id="limitations">
+         <title class="- topic/title ">Limitations</title>
+         <p class="- topic/p ">Limitations paragraph.</p>
+      </section>
+   </conbody>
+</concept>

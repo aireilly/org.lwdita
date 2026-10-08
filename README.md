@@ -101,9 +101,10 @@ attribute blocks are not parsed, and the element set is reduced.
 > using default Markdown parser
 > ```
 >
-> For a task the visible symptom usually arrives later, as `Level 2 section
-> title must be higher level than parent topic title 2`, because the topic is
-> no longer a task and its section headings become nested topics.
+> For a task the visible symptom usually arrives later, as an error saying that
+> a heading "can't be a section here" because the heading above it opened a
+> nested topic, since the topic is no longer a task and its section headings
+> become nested topics.
 
 A class on the H1 heading, `# Installing the CLI {.task}`, is the older way to
 select a type and remains equivalent.
@@ -111,6 +112,11 @@ select a type and remains equivalent.
 The topic `@id` comes from the `id:` key, or from a slug of the title when
 `id:` is absent. Set it explicitly for any topic that is linked to, so
 renaming the title does not change the id.
+
+In concept and reference topics, `##` starts a `<section>`. Sections don't
+nest, so `###` is an error. Link to a section as `file.md#topic-id/heading`.
+Generic topics and tasks are unchanged: an H2 there still opens a nested topic,
+except for the task section titles listed under [Task](#task).
 
 ### Concept
 
@@ -128,10 +134,16 @@ Containers share the host kernel, so they start faster and use less memory than 
 
 !!! note
     A container image is a template; a container is a running instance of one.
+
+## Limitations
+
+A container does not isolate the kernel, so it is not a security boundary.
 ```
 
 The title becomes `<title>`, the first paragraph `<shortdesc>`, the rest
-`<conbody>`, and the admonition a `<note type="note">`.
+`<conbody>`, and the admonition a `<note type="note">`. The H2 becomes
+`<section id="limitations">` inside `<conbody>`, which another topic links to
+as `about-containers.md#about-containers/limitations`.
 
 ### Task
 
@@ -247,10 +259,15 @@ The following options apply to every `cli` subcommand.
 |--------|----------|-------------|
 | `--config` | path | Configuration file to read. |
 | `--verbose` | none | Print each request and response. |
+
+## Example {.example}
+
+    cli --config ./cli.yaml --verbose status
 ```
 
 The table becomes a CALS `<table>` inside `<refbody>`. In the MDITA profiles it
-would be a `<simpletable>` instead.
+would be a `<simpletable>` instead. An H2 opens a `<section>` in `<refbody>`,
+and `{.example}` an `<example>`.
 
 ## Requirements
 

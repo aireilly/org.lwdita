@@ -8,16 +8,12 @@
             id="concept">
       <title class="- topic/title ">Concept</title>
       <shortdesc class="- topic/shortdesc ">Content A.</shortdesc>
-      <conbody class="- topic/body concept/conbody "/>
-      <concept class="- topic/topic concept/concept "
-               ditaarch:DITAArchVersion="2.0"
-               specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product"
-               id="heading-a1">
-         <title class="- topic/title ">Heading A.1</title>
-         <conbody class="- topic/body concept/conbody ">
+      <conbody class="- topic/body concept/conbody ">
+         <section class="- topic/section " id="heading-a1">
+            <title class="- topic/title ">Heading A.1</title>
             <p class="- topic/p ">Content A.1.</p>
-         </conbody>
-      </concept>
+         </section>
+      </conbody>
    </concept>
    <task class="- topic/topic task/task "
          ditaarch:DITAArchVersion="2.0"
@@ -44,18 +40,12 @@
               id="reference">
       <title class="- topic/title ">Reference</title>
       <shortdesc class="- topic/shortdesc ">Content C.</shortdesc>
-      <refbody class="- topic/body reference/refbody "/>
-      <reference class="- topic/topic reference/reference "
-                 ditaarch:DITAArchVersion="2.0"
-                 specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product"
-                 id="heading-c1">
-         <title class="- topic/title ">Heading C.1</title>
-         <refbody class="- topic/body reference/refbody ">
-            <section class="- topic/section ">
-               <p class="- topic/p ">Content C.1.</p>
-            </section>
-         </refbody>
-      </reference>
+      <refbody class="- topic/body reference/refbody ">
+         <section class="- topic/section " id="heading-c1">
+            <title class="- topic/title ">Heading C.1</title>
+            <p class="- topic/p ">Content C.1.</p>
+         </section>
+      </refbody>
    </reference>
    <topic class="- topic/topic "
           ditaarch:DITAArchVersion="2.0"
