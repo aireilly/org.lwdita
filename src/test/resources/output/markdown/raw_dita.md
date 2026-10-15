@@ -8,7 +8,7 @@ The file <filepath>/etc/hosts</filepath> contains entries.
 
 Run <cmdname>grep</cmdname> to search.
 
-Set <varname>MY_VAR</varname> to configure.
+Set <varname>MY\_VAR</varname> to configure.
 
 Regular **bold** and *italic* and `code` stay as Markdown.
 
@@ -41,7 +41,9 @@ Superscript <sup>2</sup> test.
 
 ## Note with domain elements { .section}
 
-**Warning:** Do not modify <filepath>/etc/passwd</filepath> directly. Use <cmdname>usermod</cmdname> instead.
+<note type="warning">
+Do not modify <filepath>/etc/passwd</filepath> directly. Use <cmdname>usermod</cmdname> instead.
+</note>
 
 ## Blockquote with domain elements { .section}
 
@@ -49,24 +51,30 @@ Superscript <sup>2</sup> test.
 
 ## ID and reference preservation { .section}
 
-<p id="reusable-para">This paragraph is a conref target.</p>
+<p id="reusable-para">
+This paragraph is a conref target.
+</p>
 
 Click <b id="reuse-bold">Save</b> to continue.
 
-<p conref="common.dita#shared/install-note"></p>
+<p conref="common.dita#shared/install-note">
+</p>
 
 Install <keyword keyref="product-name"></keyword> first.
 
-<note type="warning" id="install-warning">Back up your data before upgrading.</note>
+<note type="warning" id="install-warning">
+Back up your data before upgrading.
+</note>
 
-<p outputclass="draft">This paragraph has a custom class.</p>
+<p outputclass="draft">
+This paragraph has a custom class.
+</p>
 
 ## List with ID on item { .section}
 
 <ul>
-        <li id="prereq-java">Install Java 11 or later.</li>
-        <li>Install Maven 3.8 or later.</li>
-      </ul>
+<li id="prereq-java">Install Java 11 or later.</li><li>Install Maven 3.8 or later.</li>
+</ul>
 
 ## Mixed inline complexity { .section}
 
@@ -75,4 +83,43 @@ Use <cmdname>ssh</cmdname> to connect, then **navigate** to <filepath>/var/log</
 The <uicontrol>Status</uicontrol> field shows <systemoutput>OK</systemoutput> when ready.
 
 Type <userinput>yes</userinput> to confirm.
+
+## Markdown syntax inside raw markup { .section}
+
+Edit <filepath>/etc/\*.conf</filepath> and set <varname>my\_var\_name</varname> to <userinput>\[a\|b\]</userinput>.
+
+Run <codeph>ls <varname>DIR</varname></codeph> to list.
+
+Press <uicontrol outputclass="a&gt;b &quot;c&quot;">Next</uicontrol>.
+
+<note id="note-with-code">
+Run this:<codeblock xml:space="preserve">first&#10;&#10;third</codeblock>
+</note>
+
+|Header|
+|------|
+|Cell|
+
+## Containers with raw parts { .section}
+
+<simpletable>
+<sthead><stentry>Option</stentry><stentry>Meaning</stentry></sthead><strow><stentry id="opt-v"><option>-v</option></stentry><stentry>Verbose</stentry></strow>
+</simpletable>
+
+<sl>
+<sli>one</sli><sli id="sli-two">two</sli>
+</sl>
+
+> <p id="quoted">
+> Quoted text.
+> </p>
+
+-   First.
+
+    <p id="second">
+    Second.
+    </p>
+
+-   Third.
+
 

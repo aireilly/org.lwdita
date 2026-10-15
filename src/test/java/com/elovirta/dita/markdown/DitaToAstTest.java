@@ -40,7 +40,7 @@ public class DitaToAstTest {
 
   @Test
   public void testRawDitaAst() throws Exception {
-    final Document act = runWithXsl("dita/raw_dita.dita", "/dita2ast-raw.xsl");
+    final Document act = run("dita/raw_dita.dita", "/dita2ast-raw.xsl");
     final Document exp = read("output/ast/raw_dita.xml");
     try {
       final Diff diff = DiffBuilder
@@ -58,18 +58,6 @@ public class DitaToAstTest {
       transformerFactory.newTransformer().transform(new DOMSource(act), new StreamResult(System.out));
       throw e;
     }
-  }
-
-  private Document runWithXsl(final String input, final String xslPath) throws Exception {
-    final Document output = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-    try (
-      InputStream style = getClass().getResourceAsStream(xslPath);
-      InputStream ri = getClass().getResourceAsStream("/" + input)
-    ) {
-      final Transformer t = transformerFactory.newTransformer(new StreamSource(style, "classpath://" + xslPath));
-      t.transform(new StreamSource(ri), new DOMResult(output));
-    }
-    return output;
   }
 
   @ParameterizedTest
@@ -148,12 +136,16 @@ public class DitaToAstTest {
   }
 
   private Document run(final String input) throws Exception {
+    return run(input, "/dita2ast.xsl");
+  }
+
+  private Document run(final String input, final String xslPath) throws Exception {
     final Document output = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
     try (
-      InputStream style = getClass().getResourceAsStream("/dita2ast.xsl");
+      InputStream style = getClass().getResourceAsStream(xslPath);
       InputStream ri = getClass().getResourceAsStream("/" + input)
     ) {
-      final Transformer t = transformerFactory.newTransformer(new StreamSource(style, "classpath:///dita2ast.xsl"));
+      final Transformer t = transformerFactory.newTransformer(new StreamSource(style, "classpath://" + xslPath));
       t.transform(new StreamSource(ri), new DOMResult(output));
     }
     return output;

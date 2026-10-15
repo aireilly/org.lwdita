@@ -27,6 +27,7 @@
   <!--xsl:import href="abbrev-d.xsl"/-->
   <xsl:import href="markup-d.xsl"/>
   <xsl:import href="xml-d.xsl"/>
+  <xsl:import href="raw-dita.xsl"/>
 
   <xsl:output xmlns:dita="http://dita-ot.sourceforge.net" method="xml" encoding="UTF-8"/>
 

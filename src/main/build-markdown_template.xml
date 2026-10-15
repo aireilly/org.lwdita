@@ -112,6 +112,7 @@
           <param name="ARTLBL" expression="${args.artlbl}" if:set="args.artlbl"/>
           <param name="GENERATE-TASK-LABELS" expression="${args.gen.task.lbl}" if:set="args.gen.task.lbl"/>
           <param name="PRESERVE-DITA-CLASS" expression="${args.markdown.classattr}" if:set="args.markdown.classattr"/>
+          <param name="raw-dita" expression="${args.markdown.raw-dita}" if:set="args.markdown.raw-dita"/>
           <param name="NOPARENTLINK" expression="${args.hide.parent.link}" if:set="args.hide.parent.link"/>
           <param name="include.rellinks" expression="${include.rellinks}"/>
           <param name="INDEXSHOW" expression="${args.indexshow}" if:set="args.indexshow"/>

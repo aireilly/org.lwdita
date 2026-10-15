@@ -808,7 +808,8 @@ public class TopicRenderer extends AbstractRenderer {
    * Render HTML block into DITA.
    */
   private void render(final HtmlBlock node, final NodeRendererContext context, final SaxWriter html) {
-    final String text = node.getChars().toString();
+    // Content chars omit the block quote markers of enclosing containers.
+    final String text = node.getContentChars().toString();
     final FragmentContentHandler fragmentFilter = new FragmentContentHandler();
     fragmentFilter.setContentHandler(html);
     final TransformerHandler h;
@@ -1002,6 +1003,7 @@ public class TopicRenderer extends AbstractRenderer {
       throw new RuntimeException(e);
     }
     h.getTransformer().setParameter("formats", String.join(",", formats));
+    h.getTransformer().setParameter("raw-dita", rawDita);
     final HtmlParser parser = new HtmlParser(XmlViolationPolicy.ALLOW);
     parser.setContentHandler(h);
     html.setLocation(node);

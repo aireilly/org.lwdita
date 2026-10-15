@@ -1,21 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- DITA to AST through the shipped Markdown stylesheet, with raw DITA
+     passthrough enabled. -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:xs="http://www.w3.org/2001/XMLSchema"
-                exclude-result-prefixes="xs"
                 version="2.0">
 
-  <xsl:import href="ast2markdown.xsl"/>
+  <xsl:import href="dita2markdown_template.xsl"/>
 
-  <xsl:import href="dita2markdownImpl.xsl"/>
-  <xsl:import href="task.xsl"/>
-  <xsl:import href="ut-d.xsl"/>
-  <xsl:import href="sw-d.xsl"/>
-  <xsl:import href="pr-d.xsl"/>
-  <xsl:import href="ui-d.xsl"/>
-  <xsl:import href="hi-d.xsl"/>
-  <xsl:import href="markup-d.xsl"/>
-  <xsl:import href="xml-d.xsl"/>
-  <xsl:import href="raw-dita.xsl"/>
+  <xsl:param name="raw-dita" select="'yes'"/>
 
   <xsl:output method="xml" encoding="UTF-8"/>
 
