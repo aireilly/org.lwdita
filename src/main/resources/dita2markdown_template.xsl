@@ -18,6 +18,7 @@
   <!--xsl:import href="abbrev-d.xsl"/-->
   <xsl:import href="markup-d.xsl"/>
   <xsl:import href="xml-d.xsl"/>
+  <xsl:import href="raw-dita.xsl"/>
   <dita:extension id="dita.xsl.markdown" behavior="org.dita.dost.platform.ImportXSLAction" xmlns:dita="http://dita-ot.sourceforge.net"/>
   <!--xsl:include href="markdownflag.xsl"/-->  
   

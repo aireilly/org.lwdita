@@ -78,13 +78,14 @@ image =
   }
 span = element span { inline* }
 footnote = element footnote { text }
+rawinline = element rawinline { text }
 
 attr =
   attribute id { text }?,
   attribute class { text }?,
   attribute key-value { text }?
 block = para | plain | codeblock | rawblock | blockquote | orderedlist | bulletlist | definitionlist | header | table | \div | footnoteblock
-inline = text | emph | strong | strikeout | superscript | subscript | smallcaps | quoted | cite | code | link | image | span | footnote
+inline = text | emph | strong | strikeout | superscript | subscript | smallcaps | quoted | cite | code | link | image | span | footnote | rawinline
 
 head = element head {
   yamlValue*

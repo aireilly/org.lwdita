@@ -1368,6 +1368,12 @@
     </xsl:copy>
   </xsl:template>
 
+  <!-- The HTML parser reports xml:space and xml:lang as attributes in no
+       namespace whose name contains a colon. -->
+  <xsl:template match="@*[$raw-dita][namespace-uri() = ''][starts-with(local-name(), 'xml:')]">
+    <xsl:attribute name="{local-name()}" namespace="http://www.w3.org/XML/1998/namespace" select="."/>
+  </xsl:template>
+
   <xsl:template match="@data-keyref">
     <xsl:attribute name="keyref" select="."/>
   </xsl:template>

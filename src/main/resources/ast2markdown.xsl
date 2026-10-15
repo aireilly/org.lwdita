@@ -468,6 +468,23 @@
     <xsl:value-of select="."/>
   </xsl:template>
 
+  <!-- Raw markup is written verbatim, without Markdown escaping. -->
+  <xsl:template match="rawinline" mode="ast">
+    <xsl:value-of select="."/>
+  </xsl:template>
+
+  <xsl:template match="rawblock" mode="ast">
+    <xsl:param name="indent" tunnel="yes" as="xs:string" select="''"/>
+    <xsl:param name="prefix" tunnel="yes" as="xs:string?" select="()"/>
+    <xsl:for-each select="tokenize(., '\n')">
+      <xsl:value-of select="$indent"/>
+      <xsl:value-of select="$prefix"/>
+      <xsl:value-of select="."/>
+      <xsl:value-of select="$linefeed"/>
+    </xsl:for-each>
+    <xsl:value-of select="$linefeed"/>
+  </xsl:template>
+
   <xsl:template match="node()" mode="ast" priority="-10">
     <xsl:message>ERROR: Unsupported AST node <xsl:value-of select="name()"/></xsl:message>
     <xsl:apply-templates mode="ast"/>
@@ -513,6 +530,17 @@
   <xsl:template match="codeblock//text()"
                 mode="ast-clean" priority="20">
     <xsl:value-of select="."/>
+  </xsl:template>
+
+  <xsl:template match="rawinline/text() |
+                       rawblock/text()"
+                mode="ast-clean" priority="20">
+    <xsl:value-of select="."/>
+  </xsl:template>
+
+  <!-- Copied whole so that flatten does not normalize the line breaks. -->
+  <xsl:template match="rawblock | rawinline" mode="flatten" priority="100">
+    <xsl:copy-of select="."/>
   </xsl:template>
 
   <xsl:template match="div[@class = 'p']" mode="ast-clean">
