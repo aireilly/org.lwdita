@@ -22,6 +22,7 @@ import com.vladsch.flexmark.ext.anchorlink.AnchorLink;
 import com.vladsch.flexmark.ext.attributes.AttributesNode;
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough;
 import com.vladsch.flexmark.ext.gfm.strikethrough.Subscript;
+import com.vladsch.flexmark.ext.ins.Ins;
 import com.vladsch.flexmark.ext.superscript.Superscript;
 import com.vladsch.flexmark.util.ast.Document;
 import com.vladsch.flexmark.util.ast.Node;
@@ -118,6 +119,7 @@ public abstract class AbstractRenderer {
     }
     if (!mditaCoreProfile && !mditaExtendedProfile) {
       res.add(new NodeRenderingHandler<>(Strikethrough.class, this::render));
+      res.add(new NodeRenderingHandler<>(Ins.class, this::render));
     }
 
     return res.stream().collect(Collectors.toMap(AstHandler::getNodeType, Function.identity()));
@@ -153,6 +155,15 @@ public abstract class AbstractRenderer {
 
   protected void render(final Subscript node, final NodeRendererContext context, final SaxWriter html) {
     printTag(node, context, html, HI_D_SUB, getInlineAttributes(node, SUB_ATTS));
+  }
+
+  /** Inserted text, "++text++". DITA has no element for it; browsers show it underlined. */
+  private void render(final Ins node, final NodeRendererContext context, final SaxWriter html) {
+    if (mditaExtendedProfile) {
+      printTag(node, context, html, TOPIC_PH, PH_ATTS);
+    } else {
+      printTag(node, context, html, HI_D_U, getInlineAttributes(node, buildAtts(HI_D_U)));
+    }
   }
 
   private void render(final Strikethrough node, final NodeRendererContext context, final SaxWriter html) {

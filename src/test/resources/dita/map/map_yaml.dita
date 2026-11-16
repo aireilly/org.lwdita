@@ -23,7 +23,7 @@
     <data class="- topic/data " name="foo" value="foo"/>
     <data class="- topic/data " name="tags" value="nothing"/>
     <data class="- topic/data " name="tags" value="nothingness"/>
-    <data class="- topic/data " name="title" value="'This is the title: it contains a colon'"/>
+    <data class="- topic/data " name="title" value="This is the title: it contains a colon"/>
   </topicmeta>
   <topicref class="- map/topicref " format="md" href="topic-a.md">
     <topicmeta class="- map/topicmeta ">

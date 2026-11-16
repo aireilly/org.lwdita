@@ -9,6 +9,7 @@ import static org.dita.dost.util.Constants.*;
 import static org.dita.dost.util.XMLUtils.AttributesBuilder;
 
 import com.elovirta.dita.markdown.*;
+import com.elovirta.dita.markdown.YamlValues;
 import com.elovirta.dita.utils.FragmentContentHandler;
 import com.vladsch.flexmark.ast.*;
 import com.vladsch.flexmark.ext.abbreviation.Abbreviation;
@@ -397,6 +398,11 @@ public class TopicRenderer extends AbstractRenderer {
 
   private void render(final Footnote node, final NodeRendererContext context, final SaxWriter html) {
     final String callout = node.getText().toString().trim();
+    if (node.getFootnoteBlock() == null) {
+      // No definition for this reference: keep what the author typed.
+      html.characters(node.getChars().toString());
+      return;
+    }
     final String id = getId("fn_" + callout);
     final int count = footnoteCount.getOrDefault(callout, 0);
     if (count == 1) {
@@ -787,7 +793,7 @@ public class TopicRenderer extends AbstractRenderer {
     if (idFromYaml && node.getLevel() == 1 && node.getDocument().getChildOfType(YamlFrontMatterBlock.class) != null) {
       final AbstractYamlFrontMatterVisitor v = new AbstractYamlFrontMatterVisitor();
       v.visit(node.getDocument());
-      final Map<String, List<String>> metadata = v.getData();
+      final Map<String, List<String>> metadata = YamlValues.normalize(v.getData());
       final List<String> ids = metadata.get("id");
       if (ids != null && !ids.isEmpty()) {
         return ids.get(0);

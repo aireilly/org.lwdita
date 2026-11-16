@@ -120,6 +120,8 @@
           <param name="BASEDIR" expression="${dita.dir}"/>
           <param name="OUTPUTDIR" expression="${dita.output.dir}"/>
           <param name="defaultLanguage" expression="${default.language}"/>
+          <param name="markdown.heal" expression="${markdown.heal}" if:set="markdown.heal"/>
+          <param name="markdown.admonition.style" expression="${markdown.admonition.style}" if:set="markdown.admonition.style"/>
           <params/>
           <xmlcatalog refid="dita.catalog"/>
         </xslt>
@@ -164,6 +166,38 @@
   <target name="markdown_mdx.init">
     <property name="markdown.type" value="mdx"/>
     <property name="out.ext" value=".mdx"/>
+    <!-- The stylesheet is dita2mdx.xsl, not dita2markdown_mdx.xsl. -->
+    <property name="args.xsl" value="${dita.plugin.org.lwdita.dir}/xsl/dita2mdx.xsl"/>
+  </target>
+
+  <!-- Markdown DITA with verification -->
+
+  <target name="dita2markdown_lossless" depends="markdown_lossless.init, dita2markdown, markdown_markdown.verify"/>
+
+  <target name="markdown_lossless.init">
+    <property name="markdown.type" value="lossless"/>
+    <property name="markdown.verify" value="yes"/>
+    <property name="markdown.verify.fail" value="yes"/>
+    <property name="markdown.verify.source" value="report"/>
+    <condition property="_markdown.verify.skip" value="true">
+      <or>
+        <isset property="noTopic"/>
+        <isfalse value="${markdown.verify}"/>
+      </or>
+    </condition>
+  </target>
+
+  <target name="markdown_markdown.verify" unless="_markdown.verify.skip"
+          description="Fail when text in a source topic is missing from its Markdown file">
+    <pipeline message="Compare Markdown output with source topics" taskname="lossless-verify">
+      <module class="com.elovirta.dita.markdown.verify.LosslessCheckModule">
+        <param name="output.dir" location="${dita.output.dir}"/>
+        <param name="out.ext" value="${out.ext}"/>
+        <param name="fail" value="${markdown.verify.fail}"/>
+        <param name="source" value="${markdown.verify.source}"/>
+        <param name="report" location="${dita.output.dir}/markdown-verify-report.txt"/>
+      </module>
+    </pipeline>
   </target>
 
 </project>

@@ -60,7 +60,8 @@ public class SaxWriter extends XMLFilterImpl {
   }
 
   public void setLocation(Node node) {
-    if (node != null) {
+    // A node the parser built and never attached has no document to count lines in.
+    if (node != null && node.getDocument() != null) {
       locator.setLineNumber(node.getLineNumber() + 1);
       locator.setColumnNumber(node.getStartOffset() - node.getStartOfLine() + 1);
     }

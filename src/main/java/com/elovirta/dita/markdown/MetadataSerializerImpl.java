@@ -42,7 +42,7 @@ public class MetadataSerializerImpl implements MetadataSerializer {
   public void render(final YamlFrontMatterBlock node, final NodeRendererContext context, final SaxWriter html) {
     final AbstractYamlFrontMatterVisitor v = new AbstractYamlFrontMatterVisitor();
     v.visit(node);
-    final Map<String, List<String>> header = v.getData();
+    final Map<String, List<String>> header = YamlValues.normalize(v.getData());
 
     write(header, TOPIC_AUTHOR, html);
     write(header, TOPIC_SOURCE, html);

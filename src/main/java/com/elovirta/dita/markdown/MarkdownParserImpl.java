@@ -182,7 +182,7 @@ public class MarkdownParserImpl implements MarkdownParser {
     if (yaml != null) {
       final AbstractYamlFrontMatterVisitor v = new AbstractYamlFrontMatterVisitor();
       v.visit(root);
-      final Map<String, List<String>> metadata = v.getData();
+      final Map<String, List<String>> metadata = YamlValues.normalize(v.getData());
       final List<String> ids = metadata.get("id");
       if (ids != null && !ids.isEmpty()) {
         res.put("id", ids.get(0));

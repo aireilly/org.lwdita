@@ -5,6 +5,26 @@
   <transtype name="markdown_github" desc="GitHub-flavored Markdown"/>
   <transtype name="markdown_gitbook" desc="GitBook"/>
   <transtype name="mdx" desc="MDX"/>
+  <transtype name="markdown_lossless" desc="Markdown DITA, fails if source text is missing from the output">
+    <param name="markdown.verify" desc="Compare every output file with its source topic and report text that is missing." type="enum">
+      <val default="true">yes</val>
+      <val>no</val>
+    </param>
+    <param name="markdown.verify.fail" desc="Fail the build when the comparison finds missing text." type="enum">
+      <val default="true">yes</val>
+      <val>no</val>
+    </param>
+    <param name="markdown.verify.source" desc="What to do with text that is in an authored topic but was removed by filtering or by conref and key resolution before the conversion: list it, fail the build, or skip the comparison." type="enum">
+      <val default="true">report</val>
+      <val>fail</val>
+      <val>no</val>
+    </param>
+    <param name="markdown.admonition.style" desc="Syntax for notes. mkdocs is built in; other plug-ins add styles through the dita.xsl.markdown.admonition extension point." type="string"/>
+    <param name="markdown.heal" desc="Append source text that no template placed, under a heading at the end of the topic." type="enum">
+      <val default="true">yes</val>
+      <val>no</val>
+    </param>
+  </transtype>
   <feature extension="dita.conductor.target.relative" file="conductor.xml"/>
   <!-- common -->
   <feature extension="dita.conductor.lib.import" file="lib/${id}-${version}.jar"/>
@@ -12,6 +32,7 @@
   <!-- Markdown to DITA -->
   <template file="build-markdown_template.xml"/>
   <template file="xsl/dita2markdown_template.xsl"/>
+  <template file="xsl/dita2markdown_lossless_template.xsl"/>
   <!--template file="xsl/map2markdown-toc_template.xsl"/-->
   <template file="xsl/map2markdown-cover_template.xsl"/>
   <feature extension="dita.conductor.lib.import" file="lib/flexmark-ext-abbreviation-0.64.8.jar"/>
@@ -62,6 +83,7 @@
     </parser>
   </feature>
   <extension-point id="dita.xsl.markdown" name="Markdown overrides XSLT import"/>
+  <extension-point id="dita.xsl.markdown.admonition" name="Markdown admonition style XSLT import"/>
   <!-- HTML to DITA -->
   <template file="build-html_template.xml"/>
   <feature extension="dita.parser">

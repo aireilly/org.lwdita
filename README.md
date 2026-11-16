@@ -63,10 +63,197 @@ content as Markdown.
   Markdown](https://help.github.com/categories/writing-on-github/)
   files, use the `markdown_github` transtype.
 
+- To publish Markdown DITA files and fail the build when source text is
+  missing from the output, use the `markdown_lossless` transtype. See
+  [Generating verified Markdown DITA
+  output](#generating-verified-markdown-dita-output).
+
 - To publish GitHub Flavored Markdown and generate a `SUMMARY.md` table
   of contents file for publication via
   [GitBook](https://www.gitbook.com), use the `markdown_gitbook`
   transtype.
+
+## Generating verified Markdown DITA output
+
+You can convert DITA topics to Markdown DITA using the `markdown_lossless`
+transtype. The transtype writes the syntax that the Markdown DITA parser in
+this plug-in reads, gives every DITA element a place in the output, and
+compares each generated file with its source topic. If text from a source
+topic is missing, the build fails.
+
+Run the conversion by running the following command:
+
+``` shell
+$ dita --input=<map_file> --format=markdown_lossless --output=<output_directory>
+```
+
+where:
+
+- `<map_file>` is the DITA map that references the topics to convert.
+- `<output_directory>` is the directory that receives the `.md` files.
+
+The build writes the result of the comparison to the
+`markdown-verify-report.txt` file in the output directory.
+
+The `markdown`, `markdown_github` and `markdown_gitbook` transtypes are
+unchanged.
+
+### How the transtype writes DITA elements
+
+The following table lists the Markdown DITA syntax for the core elements.
+
+| DITA element | Markdown DITA syntax |
+|--------------|----------------------|
+| Topic `<title>` | Heading with the topic `@id`, for example `# Title {#topic-id}`. A nested topic is one heading level deeper, to a maximum of 6 levels. |
+| `<task>` | `{.task}` on the heading, at any depth |
+| `<concept>`, `<reference>` | `{.concept}` or `{.reference}` on the heading of a top-level topic that has no nested topics |
+| `<section>`, `<example>` | Heading one level below the topic with `{.section}` or `{.example}` |
+| `<prereq>`, `<context>`, `<steps>`, `<result>`, `<postreq>` | The `Prerequisites`, `About this task`, `Procedure`, `Verification` and `Next steps` headings |
+| `<note>` | Admonition, for example `!!! warning` |
+| `<dl>` | Definition list |
+| `<codeblock>`, `<pre>`, `<screen>` | Fenced code block. The fence is longer than any run of backticks in the content. |
+| `<table>`, `<simpletable>` with inline cells | Pipe table |
+| Tables with lists, code or several paragraphs in a cell | HTML table in a single block, with the cell content as HTML. The reader builds a DITA table from it. |
+| `<choices>`, `<choicetable>` | List followed by `{.choices}`, table with the `choicetable` class |
+| `<tasktroubleshooting>` | `## Troubleshooting {.section .tasktroubleshooting}` |
+| `<lq>` | Blockquote |
+| `<fn>` | Footnote |
+| `<b>`, `<i>`, `<tt>`, `<codeph>` | `**bold**`, `*italic*`, backticks |
+| `<sup>`, `<sub>`, `<u>` | `<sup>`, `<sub>`, `<u>` |
+| `<line-through>` | `~~text~~` |
+| `@outputclass` on topics and sections | Class in the heading attribute block |
+
+Metadata moves to the YAML front matter. This applies to `<prolog>`,
+`<titlealts>`, `<indexterm>`, `<data>` and `<data-about>`. Draft comments and
+required-cleanup elements become labelled paragraphs. Foreign content, such
+as MathML and SVG, becomes a fenced `xml` block that contains the source
+markup.
+
+If no template places a piece of text, the transform appends the text to the
+end of the topic under the **Unplaced source content** heading, with the path
+of the element that contained it. This ensures that an element from a
+specialization that the plug-in does not know cannot be dropped silently.
+
+### Choosing an admonition style
+
+The transtype writes `<note>` elements using an admonition style. The
+`mkdocs` style is built in and is the default. It writes the syntax of the
+Python-Markdown admonition extension that MkDocs uses, which is also the
+syntax that the Markdown DITA parser reads:
+
+``` markdown
+!!! warning
+    Back up the configuration before you upgrade.
+```
+
+The note `@type` becomes the admonition type. A note with `type="other"`
+uses its `@othertype` value.
+
+To use a different style, set the `markdown.admonition.style` parameter, for
+example:
+
+``` shell
+$ dita --input=<map_file> --format=markdown_lossless --markdown.admonition.style=github
+```
+
+If no style has that name, the build stops.
+
+### Adding an admonition style
+
+You can add a style from your own plug-in. A style is one XSLT template.
+
+1.  Create a stylesheet with a template in the `lossless-admonition` mode
+    that matches the name of your style. For example, save the following
+    XSLT in the `admonition-github.xsl` file:
+
+    ``` xml
+    <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                    xmlns:ast="com.elovirta.dita.markdown"
+                    exclude-result-prefixes="xs ast"
+                    version="2.0">
+
+      <xsl:template match="admonition[$markdown.admonition.style = 'github']"
+                    mode="lossless-admonition">
+        <xsl:param name="body" as="xs:string"/>
+        <xsl:text>&gt; [!</xsl:text>
+        <xsl:value-of select="upper-case(@type)"/>
+        <xsl:text>]&#xA;</xsl:text>
+        <xsl:value-of select="ast:prefix-lines($body, '&gt; ', '&gt;')"/>
+      </xsl:template>
+
+    </xsl:stylesheet>
+    ```
+
+    where:
+
+    - `@type` is the note type.
+    - `@title` is the note `@spectitle`, if it has one.
+    - `$body` is the content of the note as Markdown, starting at column 0.
+    - `ast:prefix-lines` puts its second argument before every line of the
+      body, and its third argument in place of every empty line.
+
+    The template returns the text of the admonition starting at column 0.
+    The transtype indents the result to the position of the note in a list
+    or table cell.
+
+2.  Register the stylesheet in the `plugin.xml` file of your plug-in:
+
+    ``` xml
+    <plugin id="com.example.admonition.github">
+      <require plugin="org.lwdita"/>
+      <feature extension="dita.xsl.markdown.admonition" file="admonition-github.xsl"/>
+    </plugin>
+    ```
+
+3.  Install the plug-in by running the following command:
+
+    ``` shell
+    $ dita install
+    ```
+
+The `admonition-mkdocs.xsl` file in this plug-in is the built-in style and
+is a working model.
+
+> **Note**
+> The comparison reads the output with the Markdown DITA parser, which
+> recognizes the `mkdocs` syntax only. With another style, the note text is
+> still compared, but the parser does not read the notes back as `<note>`
+> elements.
+
+### How the comparison works
+
+For each topic, the comparison reduces every text node to its letters and
+digits and looks for that string in the generated file. It looks twice: in
+the characters of the file, and in the text that the Markdown DITA parser
+reads from the file. The second pass finds text that is in the file but that
+Markdown syntax hides, for example, a table cell beyond the width of the
+header row.
+
+The comparison also reads the topic as you authored it and lists text that
+DITA-OT removed before the conversion. This happens when a DITAVAL file
+filters the text, when a conref or key replaces it, or when a conref target
+is not found. For example, DITA-OT deletes an element with an unresolved
+`@conref` together with its fallback content and reports the build as
+successful.
+
+The following table lists the parameters of the `markdown_lossless`
+transtype.
+
+| Parameter | Values | Description |
+|-----------|--------|-------------|
+| `markdown.admonition.style` | `mkdocs` (default), or a style that a plug-in adds | Syntax for notes. |
+| `markdown.verify` | `yes` (default), `no` | Runs the comparison. |
+| `markdown.verify.fail` | `yes` (default), `no` | Fails the build when a generated file is missing source text. |
+| `markdown.verify.source` | `report` (default), `fail`, `no` | Lists text that preprocessing removed, fails the build for it, or skips that part of the comparison. |
+| `markdown.heal` | `yes` (default), `no` | Appends text that no template placed. |
+
+> **Note**
+> The comparison covers text. It does not cover markup, attributes that
+> carry no prose, such as `@audience` and `@platform`, XML comments,
+> metadata that exists only in the map, or topics with
+> `processing-role="resource-only"`. To keep conditional content apart, run
+> the conversion once for each DITAVAL file.
 
 ## Selecting a topic type with `$schema`
 

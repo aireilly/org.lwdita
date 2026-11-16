@@ -8,6 +8,7 @@ import static org.dita.dost.util.Constants.*;
 import static org.dita.dost.util.XMLUtils.AttributesBuilder;
 
 import com.elovirta.dita.markdown.*;
+import com.elovirta.dita.markdown.YamlValues;
 import com.elovirta.dita.utils.FragmentContentHandler;
 import com.vladsch.flexmark.ast.*;
 import com.vladsch.flexmark.ext.anchorlink.AnchorLink;
@@ -270,7 +271,7 @@ public class MapRenderer extends AbstractRenderer {
     if (idFromYaml && node.getLevel() == 1 && node.getDocument().getChildOfType(YamlFrontMatterBlock.class) != null) {
       final AbstractYamlFrontMatterVisitor v = new AbstractYamlFrontMatterVisitor();
       v.visit(node.getDocument());
-      final Map<String, List<String>> metadata = v.getData();
+      final Map<String, List<String>> metadata = YamlValues.normalize(v.getData());
       final List<String> ids = metadata.get("id");
       if (ids != null && !ids.isEmpty()) {
         return ids.get(0);

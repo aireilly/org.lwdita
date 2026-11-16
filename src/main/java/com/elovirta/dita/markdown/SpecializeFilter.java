@@ -236,6 +236,13 @@ public class SpecializeFilter extends XMLFilterImpl {
           doStartElement(uri, localName, qName, atts);
         }
         break;
+      case "example":
+        if (depth == DEPTH_IN_BODY) {
+          // taskbody takes example directly; context and result do not.
+          closeImplicitSection();
+        }
+        doStartElement(uri, localName, qName, atts);
+        break;
       case "ol":
         if (depth == DEPTH_IN_BODY) {
           if (getOutputclass(atts).contains("body-ol")) {
