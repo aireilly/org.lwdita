@@ -14,7 +14,7 @@ import org.dita.dost.pipeline.AbstractPipelineOutput;
 import org.dita.dost.util.Job;
 
 /**
- * Build step for the <code>markdown_lossless</code> transtype. Runs {@link LosslessCheck}
+ * Build step for the <code>markdown</code> transtype. Runs {@link LosslessCheck}
  * on every topic of the job against the file generated for it, writes a
  * report, and fails the build when source text is missing.
  *

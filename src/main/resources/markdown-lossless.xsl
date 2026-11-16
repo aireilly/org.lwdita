@@ -49,7 +49,7 @@
        the base cannot replace that rule without replacing every rule, so the
        markers are taken out of the AST here and the content stays. -->
   <xsl:template match="span[@style = 'background-color: yellow;']" mode="lossless-strip">
-    <xsl:message>[markdown_lossless] No template for <xsl:value-of select="replace(normalize-space(span[1]), '^\[|\{.*$', '')"/>; content kept, markup dropped.</xsl:message>
+    <xsl:message>[markdown] No template for <xsl:value-of select="replace(normalize-space(span[1]), '^\[|\{.*$', '')"/>; content kept, markup dropped.</xsl:message>
     <xsl:apply-templates select="node() except span[@style = 'font-weight: bold']" mode="#current"/>
   </xsl:template>
 
@@ -111,7 +111,7 @@
           <xsl:value-of select="$markdown.heal.title"/>
         </header>
         <xsl:for-each select="$missing">
-          <xsl:message>[markdown_lossless] No template placed text of <xsl:value-of select="ast:path(.)"/>; appended under "<xsl:value-of select="$markdown.heal.title"/>": <xsl:value-of select="substring(normalize-space(.), 1, 60)"/></xsl:message>
+          <xsl:message>[markdown] No template placed text of <xsl:value-of select="ast:path(.)"/>; appended under "<xsl:value-of select="$markdown.heal.title"/>": <xsl:value-of select="substring(normalize-space(.), 1, 60)"/></xsl:message>
           <para>
             <code><xsl:value-of select="ast:path(.)"/></code>
             <xsl:text> </xsl:text>

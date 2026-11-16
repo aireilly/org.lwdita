@@ -57,25 +57,22 @@ The DITA-OT LwDITA plug-in extends the DITA Open Toolkit with additional
 output formats *(transformation types)* that can be used to publish DITA
 content as Markdown.
 
-- To publish Markdown DITA files, use the `markdown` transtype.
+- To publish Markdown DITA files and fail the build when source text is
+  missing from the output, use the `markdown` transtype. See
+  [Generating Markdown DITA output](#generating-markdown-dita-output).
 
 - To generate [GitHub Flavored
   Markdown](https://help.github.com/categories/writing-on-github/)
   files, use the `markdown_github` transtype.
-
-- To publish Markdown DITA files and fail the build when source text is
-  missing from the output, use the `markdown_lossless` transtype. See
-  [Generating verified Markdown DITA
-  output](#generating-verified-markdown-dita-output).
 
 - To publish GitHub Flavored Markdown and generate a `SUMMARY.md` table
   of contents file for publication via
   [GitBook](https://www.gitbook.com), use the `markdown_gitbook`
   transtype.
 
-## Generating verified Markdown DITA output
+## Generating Markdown DITA output
 
-You can convert DITA topics to Markdown DITA using the `markdown_lossless`
+You can convert DITA topics to Markdown DITA using the `markdown`
 transtype. The transtype writes the syntax that the Markdown DITA parser in
 this plug-in reads, gives every DITA element a place in the output, and
 compares each generated file with its source topic. If text from a source
@@ -84,7 +81,7 @@ topic is missing, the build fails.
 Run the conversion by running the following command:
 
 ``` shell
-$ dita --input=<map_file> --format=markdown_lossless --output=<output_directory>
+$ dita --input=<map_file> --format=markdown --output=<output_directory>
 ```
 
 where:
@@ -95,8 +92,15 @@ where:
 The build writes the result of the comparison to the
 `markdown-verify-report.txt` file in the output directory.
 
-The `markdown`, `markdown_github` and `markdown_gitbook` transtypes are
-unchanged.
+The `markdown_github`, `markdown_gitbook` and `mdx` transtypes do not
+run the comparison.
+
+To publish without the comparison, set `markdown.verify` to `no`, for
+example:
+
+``` shell
+$ dita --input=<map_file> --format=markdown --markdown.verify=no
+```
 
 ### How the transtype writes DITA elements
 
@@ -153,7 +157,7 @@ To use a different style, set the `markdown.admonition.style` parameter, for
 example:
 
 ``` shell
-$ dita --input=<map_file> --format=markdown_lossless --markdown.admonition.style=github
+$ dita --input=<map_file> --format=markdown --markdown.admonition.style=github
 ```
 
 If no style has that name, the build stops.
@@ -221,6 +225,18 @@ is a working model.
 > still compared, but the parser does not read the notes back as `<note>`
 > elements.
 
+### Customizing the output
+
+You can override templates of the `markdown` transtype through the
+`dita.xsl.markdown` extension point. The transform imports these overrides
+before its own Markdown DITA templates. If an override and a Markdown DITA
+template match the same element, the Markdown DITA template wins. This keeps
+the output readable by the Markdown DITA parser. Templates that match
+elements the transform does not handle still apply.
+
+The `markdown_github`, `markdown_gitbook` and `mdx` transtypes do not have
+Markdown DITA templates, so all `dita.xsl.markdown` overrides apply to them.
+
 ### How the comparison works
 
 For each topic, the comparison reduces every text node to its letters and
@@ -237,7 +253,7 @@ is not found. For example, DITA-OT deletes an element with an unresolved
 `@conref` together with its fallback content and reports the build as
 successful.
 
-The following table lists the parameters of the `markdown_lossless`
+The following table lists the parameters of the `markdown`
 transtype.
 
 | Parameter | Values | Description |

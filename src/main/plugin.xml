@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin id="${id}" version="${version}">
   <!-- DITA to Markdown -->
-  <transtype name="markdown" desc="Markdown"/>
-  <transtype name="markdown_github" desc="GitHub-flavored Markdown"/>
-  <transtype name="markdown_gitbook" desc="GitBook"/>
-  <transtype name="mdx" desc="MDX"/>
-  <transtype name="markdown_lossless" desc="Markdown DITA, fails if source text is missing from the output">
+  <transtype name="markdown" desc="Markdown DITA, fails if source text is missing from the output">
     <param name="markdown.verify" desc="Compare every output file with its source topic and report text that is missing." type="enum">
       <val default="true">yes</val>
       <val>no</val>
@@ -25,6 +21,9 @@
       <val>no</val>
     </param>
   </transtype>
+  <transtype name="markdown_github" desc="GitHub-flavored Markdown"/>
+  <transtype name="markdown_gitbook" desc="GitBook"/>
+  <transtype name="mdx" desc="MDX"/>
   <feature extension="dita.conductor.target.relative" file="conductor.xml"/>
   <!-- common -->
   <feature extension="dita.conductor.lib.import" file="lib/${id}-${version}.jar"/>

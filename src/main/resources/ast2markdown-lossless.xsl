@@ -186,7 +186,7 @@
   <!-- No style of that name: stop, so that notes are not written in a
        syntax nobody chose. -->
   <xsl:template match="admonition" mode="lossless-admonition">
-    <xsl:message terminate="yes">[markdown_lossless] No admonition style named "<xsl:value-of select="$markdown.admonition.style"/>". The built-in style is "mkdocs". A plug-in adds a style through the dita.xsl.markdown.admonition extension point.</xsl:message>
+    <xsl:message terminate="yes">[markdown] No admonition style named "<xsl:value-of select="$markdown.admonition.style"/>". The built-in style is "mkdocs". A plug-in adds a style through the dita.xsl.markdown.admonition extension point.</xsl:message>
   </xsl:template>
 
   <!-- An admonition that opens a list item goes on the line after the

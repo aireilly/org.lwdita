@@ -2,7 +2,7 @@
 <!--
   DITA to Markdown DITA, fail-closed.
 
-  Template for the entry stylesheet of the `markdown_lossless` transtype. Imports the
+  Template for the entry stylesheet of the `markdown` transtype. Imports the
   ordinary Markdown transform and layers the lossless modules over it. A later
   import outranks an earlier one:
 

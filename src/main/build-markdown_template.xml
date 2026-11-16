@@ -7,17 +7,43 @@
                    preprocess,
                    markdown.init,
                    markdown.topic,
-                   markdown.map"/>
+                   markdown.map,
+                   markdown.verify"/>
 
   <target name="markdown.init">
     <property name="out.ext" value=".md"/>
     <local name="markdown.type.prefix"/>
-    <condition property="markdown.type.prefix" value="_${markdown.type}" else="">
+    <!-- Without a markdown.type, the output is Markdown DITA that the parser in this plug-in reads. -->
+    <condition property="markdown.type.prefix" value="_${markdown.type}" else="_lossless">
       <isset property="markdown.type"/>
     </condition>
     <property name="args.xsl" value="${dita.plugin.org.lwdita.dir}/xsl/dita2markdown${markdown.type.prefix}.xsl"/>
     <makeurl file="${dita.input.valfile}" property="dita.input.valfile.url" validate="no"/>
     <property name="dita.markdown.reloadstylesheet" value="false"/>
+    <property name="markdown.verify" value="yes"/>
+    <property name="markdown.verify.fail" value="yes"/>
+    <property name="markdown.verify.source" value="report"/>
+    <!-- The comparison reads the output with the Markdown DITA parser, so it runs for the markdown transtype only. -->
+    <condition property="_markdown.verify.skip" value="true">
+      <or>
+        <isset property="markdown.type"/>
+        <isset property="noTopic"/>
+        <isfalse value="${markdown.verify}"/>
+      </or>
+    </condition>
+  </target>
+
+  <target name="markdown.verify" unless="_markdown.verify.skip"
+          description="Fail when text in a source topic is missing from its Markdown file">
+    <pipeline message="Compare Markdown output with source topics" taskname="markdown-verify">
+      <module class="com.elovirta.dita.markdown.verify.LosslessCheckModule">
+        <param name="output.dir" location="${dita.output.dir}"/>
+        <param name="out.ext" value="${out.ext}"/>
+        <param name="fail" value="${markdown.verify.fail}"/>
+        <param name="source" value="${markdown.verify.source}"/>
+        <param name="report" location="${dita.output.dir}/markdown-verify-report.txt"/>
+      </module>
+    </pipeline>
   </target>
 
   <!-- Map -->
@@ -168,36 +194,6 @@
     <property name="out.ext" value=".mdx"/>
     <!-- The stylesheet is dita2mdx.xsl, not dita2markdown_mdx.xsl. -->
     <property name="args.xsl" value="${dita.plugin.org.lwdita.dir}/xsl/dita2mdx.xsl"/>
-  </target>
-
-  <!-- Markdown DITA with verification -->
-
-  <target name="dita2markdown_lossless" depends="markdown_lossless.init, dita2markdown, markdown_markdown.verify"/>
-
-  <target name="markdown_lossless.init">
-    <property name="markdown.type" value="lossless"/>
-    <property name="markdown.verify" value="yes"/>
-    <property name="markdown.verify.fail" value="yes"/>
-    <property name="markdown.verify.source" value="report"/>
-    <condition property="_markdown.verify.skip" value="true">
-      <or>
-        <isset property="noTopic"/>
-        <isfalse value="${markdown.verify}"/>
-      </or>
-    </condition>
-  </target>
-
-  <target name="markdown_markdown.verify" unless="_markdown.verify.skip"
-          description="Fail when text in a source topic is missing from its Markdown file">
-    <pipeline message="Compare Markdown output with source topics" taskname="lossless-verify">
-      <module class="com.elovirta.dita.markdown.verify.LosslessCheckModule">
-        <param name="output.dir" location="${dita.output.dir}"/>
-        <param name="out.ext" value="${out.ext}"/>
-        <param name="fail" value="${markdown.verify.fail}"/>
-        <param name="source" value="${markdown.verify.source}"/>
-        <param name="report" location="${dita.output.dir}/markdown-verify-report.txt"/>
-      </module>
-    </pipeline>
   </target>
 
 </project>
