@@ -3,12 +3,28 @@
          xmlns:if="ant:if">
 
   <target name="dita2markdown"
-          depends="build-init,
+          depends="markdown.conref.init,
+                   build-init,
                    preprocess,
                    markdown.init,
                    markdown.topic,
                    markdown.map,
                    markdown.verify"/>
+
+  <!-- Runs before build-init, which turns build-step.conref into the skip flag.
+       Markdown DITA keeps each conref as raw DITA so that it reads back intact.
+       markdown.conref=resolve, or an explicit build-step.conref, resolves them. -->
+  <target name="markdown.conref.init">
+    <property name="markdown.conref" value="keep"/>
+    <condition property="build-step.conref" value="false">
+      <and>
+        <not>
+          <isset property="markdown.type"/>
+        </not>
+        <equals arg1="${markdown.conref}" arg2="keep"/>
+      </and>
+    </condition>
+  </target>
 
   <target name="markdown.init">
     <property name="out.ext" value=".md"/>

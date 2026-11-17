@@ -20,6 +20,10 @@
       <val default="true">yes</val>
       <val>no</val>
     </param>
+    <param name="markdown.conref" desc="Keep each conref as raw DITA that the Markdown DITA parser reads back, or resolve conrefs before the conversion." type="enum">
+      <val default="true">keep</val>
+      <val>resolve</val>
+    </param>
   </transtype>
   <transtype name="markdown_github" desc="GitHub-flavored Markdown"/>
   <transtype name="markdown_gitbook" desc="GitBook"/>

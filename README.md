@@ -126,6 +126,9 @@ The following table lists the Markdown DITA syntax for the core elements.
 | `<sup>`, `<sub>`, `<u>` | `<sup>`, `<sub>`, `<u>` |
 | `<line-through>` | `~~text~~` |
 | `@outputclass` on topics and sections | Class in the heading attribute block |
+| Element with `@conref` | Raw DITA, as a block or inline in its text, for example `<p conref="shared.dita#shared/para"/>`. See "References". |
+| `<xref>`, `<link>` to a DITA file that is not part of the conversion | Markdown link with the `@href` as authored, for example `[Text](GUID-1234.dita#topic/element)`. An `<xref>` without text is raw DITA. |
+| `<xref>` within the topic | Markdown link that keeps the topic ID, for example `[Text](#topic/element)` |
 
 Metadata moves to the YAML front matter. This applies to `<prolog>`,
 `<titlealts>`, `<indexterm>`, `<data>` and `<data-about>`. Draft comments and
@@ -263,6 +266,7 @@ transtype.
 | `markdown.verify.fail` | `yes` (default), `no` | Fails the build when a generated file is missing source text. |
 | `markdown.verify.source` | `report` (default), `fail`, `no` | Lists text that preprocessing removed, fails the build for it, or skips that part of the comparison. |
 | `markdown.heal` | `yes` (default), `no` | Appends text that no template placed. |
+| `markdown.conref` | `keep` (default), `resolve` | Keeps each conref as raw DITA, or resolves conrefs before the conversion. Setting `build-step.conref` explicitly overrides it. |
 
 > **Note**
 > The comparison covers text. It does not cover markup, attributes that
@@ -270,6 +274,34 @@ transtype.
 > metadata that exists only in the map, or topics with
 > `processing-role="resource-only"`. To keep conditional content apart, run
 > the conversion once for each DITAVAL file.
+
+### References
+
+The `markdown` transtype keeps conrefs and cross-references so that the
+Markdown DITA parser reads them back as authored. This allows a topic to
+make a round trip through Markdown when its reuse targets and link targets
+live in another system, such as a CCMS that names files by GUID.
+
+- Conrefs are not resolved. Each element with `@conref` is written as raw
+  DITA with its attributes and any fallback content. The parser reads raw
+  DITA back as the same element. Set `markdown.conref` to `resolve` to
+  replace each conref with its target content instead.
+- A link to a DITA file that is not part of the conversion keeps the file
+  name and fragment that the author wrote, because the target has no
+  Markdown file. A link within the topic keeps its topic ID, because
+  `#element` reads back as a reference to a topic.
+
+When you read the Markdown back into DITA with the `dita` transtype, set
+`build-step.conref` to `false` so that DITA-OT does not resolve or delete
+the conrefs, for example:
+
+``` shell
+$ dita --input=<topic_file> --format=dita --build-step.conref=false
+```
+
+DITA-OT renames each unresolved conref target in that output to a hash of
+its file path, and adds the file name to links within the topic. Map these
+names back after the conversion.
 
 ## Selecting a topic type with `$schema`
 

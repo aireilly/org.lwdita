@@ -807,4 +807,121 @@
     </table>
   </xsl:template>
 
+  <!-- ============================================================== -->
+  <!-- References kept as authored                                    -->
+  <!-- ============================================================== -->
+
+  <!-- An element that still has its conref was not resolved, because
+       markdown.conref is keep. It is written as raw DITA, which the Markdown
+       DITA parser reads back as the same element and attributes. -->
+  <xsl:template match="*[@conref]" priority="60">
+    <xsl:choose>
+      <xsl:when test="ast:is-phrase(.)">
+        <rawinline>
+          <xsl:value-of select="ast:raw-dita(.)"/>
+        </rawinline>
+      </xsl:when>
+      <xsl:otherwise>
+        <rawblock>
+          <xsl:value-of select="ast:raw-dita(.)"/>
+        </rawblock>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- A DITA href whose target is not part of the conversion keeps the file
+       name and fragment the author wrote. The target has no Markdown file to
+       point to, and the parser reads the href back unchanged. -->
+  <xsl:template match="*[ast:is-unconverted-target(.)]" mode="determine-final-href" priority="10">
+    <xsl:value-of select="@href"/>
+  </xsl:template>
+
+  <!-- A reference within the topic keeps its topic ID. Without it, "#element"
+       reads back as a reference to a topic with that ID. -->
+  <xsl:template match="*[starts-with(normalize-space(@href), '#')]
+                        [empty(@format) or @format = 'dita']" mode="determine-final-href" priority="10">
+    <xsl:value-of select="normalize-space(@href)"/>
+  </xsl:template>
+
+  <!-- Without link text the Markdown link would show the href instead, which
+       the parser reads back as authored text. Raw DITA keeps the link empty. -->
+  <xsl:template match="*[contains(@class, ' topic/xref ')]
+                        [ast:is-unconverted-target(.)]
+                        [empty(node()[self::* or self::text()[normalize-space()]])]" priority="40">
+    <rawinline>
+      <xsl:value-of select="ast:raw-dita(.)"/>
+    </rawinline>
+  </xsl:template>
+
+  <!-- Related links are copied into a temporary tree before they are written,
+       which has no base URI. They resolve against the topic document instead. -->
+  <xsl:variable name="ast:document-base" select="base-uri(/)" as="xs:anyURI?"/>
+
+  <xsl:function name="ast:is-unconverted-target" as="xs:boolean">
+    <xsl:param name="link" as="element()"/>
+    <xsl:variable name="base" select="(base-uri($link)[string(.) ne ''], $ast:document-base)[1]" as="xs:anyURI?"/>
+    <xsl:variable name="href" select="normalize-space($link/@href)" as="xs:string"/>
+    <xsl:variable name="file" select="if (contains($href, '#')) then substring-before($href, '#') else $href" as="xs:string"/>
+    <xsl:sequence select="$file ne '' and
+                          not(matches($file, '^[a-zA-Z][a-zA-Z0-9+.\-]*:')) and
+                          (empty($link/@scope) or $link/@scope = ('local', 'peer')) and
+                          (empty($link/@format) or $link/@format = ('dita', 'ditamap')) and
+                          exists($base) and
+                          not(unparsed-text-available(resolve-uri($file, $base)))"/>
+  </xsl:function>
+
+  <!-- Phrase-level elements sit in a line of text; everything else is a block. -->
+  <xsl:function name="ast:is-phrase" as="xs:boolean">
+    <xsl:param name="element" as="element()"/>
+    <xsl:variable name="class" select="string($element/@class)" as="xs:string"/>
+    <xsl:sequence select="some $token in (' topic/ph ', ' topic/keyword ', ' topic/term ', ' topic/xref ',
+                                          ' topic/text ', ' topic/tm ', ' topic/cite ', ' topic/q ',
+                                          ' topic/boolean ', ' topic/state ', ' topic/indexterm ')
+                          satisfies contains($class, $token) or
+                          (contains($class, ' topic/image ') and not($element/@placement = 'break'))"/>
+  </xsl:function>
+
+  <!-- The element as the author wrote it, on one line. Attributes that
+       preprocessing adds are left out, and line breaks become character
+       references so that the element stays a single Markdown line. -->
+  <xsl:function name="ast:raw-dita" as="xs:string">
+    <xsl:param name="element" as="element()"/>
+    <xsl:value-of>
+      <xsl:apply-templates select="$element" mode="lossless-raw-dita"/>
+    </xsl:value-of>
+  </xsl:function>
+
+  <xsl:template match="*" mode="lossless-raw-dita">
+    <xsl:variable name="content" as="node()*"
+                  select="node()[self::* and empty(self::*[contains(@class, ' ditaot-d/')]) or self::text()]"/>
+    <xsl:text>&lt;</xsl:text>
+    <xsl:value-of select="name()"/>
+    <xsl:for-each select="@*[namespace-uri() = ('', 'http://www.w3.org/XML/1998/namespace')]
+                            [not(name() = ('class', 'xtrf', 'xtrc', 'domains', 'specializations'))]">
+      <xsl:value-of select="concat(' ', name(), '=&quot;', ast:raw-escape(., true()), '&quot;')"/>
+    </xsl:for-each>
+    <xsl:choose>
+      <xsl:when test="empty($content[self::* or normalize-space()])">
+        <xsl:text>/&gt;</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>&gt;</xsl:text>
+        <xsl:apply-templates select="$content" mode="lossless-raw-dita"/>
+        <xsl:value-of select="concat('&lt;/', name(), '&gt;')"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template match="text()" mode="lossless-raw-dita">
+    <xsl:value-of select="ast:raw-escape(., false())"/>
+  </xsl:template>
+
+  <xsl:function name="ast:raw-escape" as="xs:string">
+    <xsl:param name="text" as="xs:string"/>
+    <xsl:param name="attribute" as="xs:boolean"/>
+    <xsl:variable name="markup" select="replace(replace(replace($text, '&amp;', '&amp;amp;'), '&lt;', '&amp;lt;'), '&gt;', '&amp;gt;')"/>
+    <xsl:variable name="breaks" select="replace(replace(replace($markup, '&#13;', '&amp;#13;'), '&#10;', '&amp;#10;'), '&#9;', if ($attribute) then '&amp;#9;' else '&#9;')"/>
+    <xsl:sequence select="if ($attribute) then replace($breaks, '&quot;', '&amp;quot;') else $breaks"/>
+  </xsl:function>
+
 </xsl:stylesheet>

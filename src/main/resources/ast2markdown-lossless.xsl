@@ -702,4 +702,21 @@
     </xsl:for-each>
   </xsl:template>
 
+  <!-- Raw DITA, written as it is. A block is a line of its own. -->
+  <xsl:template match="rawblock" mode="ast">
+    <xsl:param name="indent" tunnel="yes" as="xs:string" select="''"/>
+    <xsl:param name="prefix" tunnel="yes" as="xs:string?" select="()"/>
+    <xsl:value-of select="concat($indent, $prefix, string(.))"/>
+    <xsl:value-of select="$linefeed"/>
+    <xsl:value-of select="$linefeed"/>
+  </xsl:template>
+
+  <xsl:template match="rawinline" mode="ast">
+    <xsl:value-of select="string(.)"/>
+  </xsl:template>
+
+  <xsl:template match="rawblock//text() | rawinline//text()" mode="ast-clean" priority="30">
+    <xsl:value-of select="."/>
+  </xsl:template>
+
 </xsl:stylesheet>
