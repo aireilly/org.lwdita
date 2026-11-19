@@ -63,6 +63,7 @@ public class MarkdownReaderTest extends AbstractReaderTest {
       "related_links_nested.md",
       "related_links_prose.md",
       "related_links_followed_by_section.md",
+      "raw_dita.md",
       "admonition.md",
       "body_attributes.md",
       "codeblock.md",
