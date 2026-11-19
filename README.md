@@ -122,7 +122,11 @@ The following table lists the Markdown DITA syntax for the core elements.
 | `<tasktroubleshooting>` | `## Troubleshooting {.section .tasktroubleshooting}` |
 | `<lq>` | Blockquote |
 | `<fn>` | Footnote |
-| `<b>`, `<i>`, `<tt>`, `<codeph>` | `**bold**`, `*italic*`, backticks |
+| `<b>`, `<i>`, `<codeph>` | `**bold**`, `*italic*`, backticks. With `@id` or `@outputclass`, an attribute block follows, for example `**bold**{#bold-id}`. |
+| `<p>` with `@id` or `@outputclass` | Paragraph followed by an attribute block on its own line, for example `{#para-id .draft}` |
+| Domain phrases, such as `<uicontrol>`, `<filepath>`, `<varname>` and `<apiname>`, and `<term>`, `<cite>`, `<q>`, `<keyword>`, `<tm>` and `<tt>` | Raw DITA start and end tags around Markdown content, for example `<filepath>/etc/\*.conf</filepath>`. See "Attributes and domain markup". |
+| Phrases with `@id`, `@outputclass` or `@keyref` | Raw DITA start and end tags, for example `<keyword keyref="product"></keyword>` |
+| `<note>`, `<lq>`, `<ul>`, `<ol>`, `<sl>`, `<simpletable>`, `<fig>`, `<div>` with `@id` or `@outputclass` on the element, its items or its rows | Raw DITA block |
 | `<sup>`, `<sub>`, `<u>` | `<sup>`, `<sub>`, `<u>` |
 | `<line-through>` | `~~text~~` |
 | `@outputclass` on topics and sections | Class in the heading attribute block |
@@ -141,6 +145,44 @@ If no template places a piece of text, the transform appends the text to the
 end of the topic under the **Unplaced source content** heading, with the path
 of the element that contained it. This ensures that an element from a
 specialization that the plug-in does not know cannot be dropped silently.
+
+### Attributes and domain markup
+
+The Markdown syntax for a phrase such as `<uicontrol>` reads back as a different element, for example `<b>`.
+The transtype writes these phrases as raw DITA start and end tags, and writes the content between them as Markdown, for example:
+
+``` markdown
+Click <uicontrol>File</uicontrol> and edit <filepath>/etc/\*.conf</filepath>.
+```
+
+The Markdown DITA parser reads Markdown inside inline HTML, so the content keeps its Markdown escaping.
+
+Paragraphs, `<b>`, `<i>` and `<codeph>` keep their Markdown syntax and carry `@id` and `@outputclass` in an attribute block.
+An ID that an attribute block cannot hold, such as `p.1`, makes the element raw DITA.
+
+A block with `@id` or `@outputclass`, or with list items or table rows that have them, is a raw DITA block.
+The start and end tags are lines of their own, and the content is one line:
+
+``` markdown
+<note id="backup" type="warning">
+<p>Back up your data before upgrading.</p>
+</note>
+```
+
+The parser reads a raw DITA block with an HTML5 parser, which changes the structure of some elements.
+These elements keep their Markdown syntax and lose `@id` and `@outputclass`:
+
+- Tables, definition lists, and blocks that contain them.
+- Figures and other blocks that contain an image.
+- Paragraphs that contain lists, notes or other blocks.
+- `<lines>`, `<codeblock>` and `<pre>`.
+- Paragraphs in table cells.
+
+`<option>` keeps its plain text form, because a line that starts with `<option>` starts an HTML block.
+`<cmd>` in a task step keeps its step syntax.
+
+Keyref resolution adds the key text to a phrase before the conversion.
+A phrase with `@keyref` keeps that text between its tags, for example `<keyword keyref="product">Acme</keyword>`.
 
 ### Choosing an admonition style
 
