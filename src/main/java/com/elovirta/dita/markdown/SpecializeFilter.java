@@ -60,6 +60,8 @@ public class SpecializeFilter extends XMLFilterImpl {
   private int paragraphCountInStep = 0;
   private int paragraphCountInSubstep = 0;
   private int depth = 0;
+  /** Depth of the open related-links element, or -1. Its content is not task, concept, or reference content. */
+  private int relatedLinksDepth = -1;
   private TaskState taskState = null;
   private ReferenceState referenceState = null;
   private boolean stepsCompleted = false;
@@ -132,6 +134,14 @@ public class SpecializeFilter extends XMLFilterImpl {
       }
     }
 
+    if (relatedLinksDepth < 0 && localName.equals(TOPIC_RELATED_LINKS.localName)) {
+      relatedLinksDepth = depth;
+    }
+    if (relatedLinksDepth >= 0) {
+      doStartElement(uri, localName, qName, atts);
+      return;
+    }
+
     switch (typeStack.peek()) {
       case CONCEPT:
         startElementConcept(uri, localName, qName, atts);
@@ -160,6 +170,14 @@ public class SpecializeFilter extends XMLFilterImpl {
     if (suppressingTitle) {
       if (localName.equals(TOPIC_TITLE.localName) && depth == titleSuppressDepth) {
         suppressingTitle = false;
+      }
+      depth--;
+      return;
+    }
+    if (relatedLinksDepth >= 0) {
+      doEndElement(uri, localName, qName);
+      if (depth == relatedLinksDepth) {
+        relatedLinksDepth = -1;
       }
       depth--;
       return;

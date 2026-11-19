@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<concept xmlns:ditaarch="http://dita.oasis-open.org/architecture/2005/" class="- topic/topic concept/concept " ditaarch:DITAArchVersion="2.0" specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product" id="related-links">
+  <title class="- topic/title ">Related links</title>
+  <shortdesc class="- topic/shortdesc ">Short description.</shortdesc>
+  <conbody class="- topic/body concept/conbody ">
+    <p class="- topic/p ">Body.</p>
+    <section class="- topic/section " id="additional-resources">
+      <title class="- topic/title ">Additional resources</title>
+      <ul class="- topic/ul "><li class="- topic/li "><xref class="- topic/xref " format="md" href="other.md">Other</xref></li></ul>
+    </section>
+    <section class="- topic/section " id="troubleshooting">
+      <title class="- topic/title ">Troubleshooting</title>
+      <p class="- topic/p ">Check the logs.</p>
+    </section>
+  </conbody>
+</concept>

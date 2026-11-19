@@ -48,6 +48,15 @@ public class MarkdownReaderTest extends AbstractReaderTest {
   @ValueSource(
     strings = {
       "abbreviation.md",
+      "related_links.md",
+      "related_links_class.md",
+      "related_links_case.md",
+      "related_links_title.md",
+      "related_links_concept.md",
+      "related_links_reference.md",
+      "related_links_nested.md",
+      "related_links_prose.md",
+      "related_links_followed_by_section.md",
       "admonition.md",
       "body_attributes.md",
       "codeblock.md",
@@ -115,6 +124,35 @@ public class MarkdownReaderTest extends AbstractReaderTest {
     reader.setFeature("http://lwdita.org/sax/features/implicit-substeps", true);
 
     run(getSrc() + src, getExp() + exp);
+  }
+
+  @Test
+  public void testRelatedLinksCustomTitles() throws Exception {
+    reader.setProperty("http://lwdita.org/sax/properties/related-links-titles", List.of("see also"));
+    assertEquals(List.of("see also"), reader.getProperty("http://lwdita.org/sax/properties/related-links-titles"));
+
+    run(getSrc() + "related_links_custom_title.md", getExp() + "related_links_custom_title.dita");
+  }
+
+  @Test
+  public void testRelatedLinksTitlesDisabled() throws Exception {
+    reader.setProperty("http://lwdita.org/sax/properties/related-links-titles", List.of());
+
+    run(getSrc() + "related_links_disabled.md", getExp() + "related_links_disabled.dita");
+  }
+
+  @Test
+  public void testRelatedLinksInImplicitTask() throws Exception {
+    reader.setFeature("http://lwdita.org/sax/features/implicit-task-sections", true);
+
+    run(getSrc() + "task/task_related_links.md", getExp() + "task/task_related_links.dita");
+  }
+
+  @Test
+  public void testRelatedLinksIgnoredInMdita() throws Exception {
+    reader.setFeature("http://lwdita.org/sax/features/mdita", true);
+
+    run(getSrc() + "related_links.md", getExp() + "related_links_mdita.dita");
   }
 
   @Test

@@ -111,6 +111,9 @@ public class TopicRenderer extends AbstractRenderer {
   private static final Attributes STROW_ATTS = buildAtts(TOPIC_STROW);
   private static final Attributes STENTRY_ATTS = buildAtts(TOPIC_STENTRY);
   private static final Attributes XREF_ATTS = buildAtts(TOPIC_XREF);
+  private static final Attributes RELATED_LINKS_ATTS = buildAtts(TOPIC_RELATED_LINKS);
+  private static final Attributes LINK_ATTS = buildAtts(TOPIC_LINK);
+  private static final Attributes LINKTEXT_ATTS = buildAtts(TOPIC_LINKTEXT);
   private static final Attributes ENTRY_ATTS = buildAtts(TOPIC_ENTRY);
   private static final Attributes FIG_ATTS = buildAtts(TOPIC_FIG);
   private static final Attributes REQUIRED_CLEANUP_ATTS = buildAtts(TOPIC_REQUIRED_CLEANUP);
@@ -156,12 +159,16 @@ public class TopicRenderer extends AbstractRenderer {
    */
   private final boolean specializationSectionTopic;
   private final Map<String, String> taskSectionTitles;
+  /** Heading titles that introduce related links, lowercase. */
+  private final Set<String> relatedLinksTitles;
   /** Heading titles that mark the start of task steps (e.g. "procedure", "steps"). */
   private final Set<String> taskStepsTitles;
 
   //  private TableBlock currentTableNode;
   private int currentTableColumn;
   private boolean inSection = false;
+  /** Whether the body of the current topic has been closed by its related links. */
+  private boolean bodyClosed = false;
   private boolean inTask = false;
   /** Whether the current root topic is a concept or a reference, so that its body holds sections. */
   private boolean inSectionTopic = false;
@@ -197,6 +204,12 @@ public class TopicRenderer extends AbstractRenderer {
       }
     });
     taskSectionTitles = Collections.unmodifiableMap(titleMap);
+    relatedLinksTitles =
+      DitaRenderer.RELATED_LINKS_TITLES
+        .get(options)
+        .stream()
+        .map(title -> title.trim().toLowerCase())
+        .collect(Collectors.toUnmodifiableSet());
     taskStepsTitles = Collections.unmodifiableSet(stepsTitles);
   }
 
@@ -451,6 +464,9 @@ public class TopicRenderer extends AbstractRenderer {
   }
 
   private void render(final BulletList node, final NodeRendererContext context, final SaxWriter html) {
+    if (node.getPrevious() instanceof Heading && isRelatedLinksHeading((Heading) node.getPrevious(), null)) {
+      return; // Written by the heading as related links
+    }
     Attributes atts = getAttributesFromAttributesNode(node, UL_ATTS);
     if (!mditaCoreProfile && inTask && !inSection && hasSubsequentListSibling(node)) {
       atts = new AttributesBuilder(atts).add(ATTRIBUTE_NAME_OUTPUTCLASS, "body-ul").build();
@@ -618,6 +634,10 @@ public class TopicRenderer extends AbstractRenderer {
       html.endElement(); // section or example
       inSection = false;
     }
+    if (isRelatedLinksHeading(node, header)) {
+      renderRelatedLinks((BulletList) node.getNext(), context, html);
+      return;
+    }
     // Steps marker heading (e.g. "Procedure"/"Steps") inside a task: the open
     // implicit section is now closed, so the following list renders as <steps>.
     // The heading maps to no element because a DITA steps element has no title.
@@ -630,45 +650,8 @@ public class TopicRenderer extends AbstractRenderer {
     ) {
       return;
     }
-    final DitaClass cls;
-    final boolean isSection;
-    if ((mditaCoreProfile || mditaExtendedProfile) && node.getLevel() == 2) {
-      isSection = true;
-      cls = TOPIC_SECTION;
-    } else if (!mditaCoreProfile) {
-      final String sectionClassName = containsSome(header.classes, sections.keySet());
-      if (sectionClassName != null) {
-        isSection = true;
-        cls = sections.get(sectionClassName);
-      } else if (
-        implicitTaskSections && taskSectionTitles.containsKey(node.getText().toString().trim().toLowerCase())
-      ) {
-        isSection = true;
-        cls = TOPIC_SECTION;
-      } else if (
-        inSectionTopic && node.getLevel() > headerLevel && Collections.disjoint(header.classes, TOPIC_TITLE_TYPES)
-      ) {
-        // The body of a concept or a reference holds sections, so the heading one level below the
-        // topic title opens one. Anything deeper would nest a section, which DITA does not allow.
-        if (node.getLevel() > headerLevel + 1) {
-          throw new ParseException(
-            String.format(
-              MESSAGES.getString("error.nested_section"),
-              headingWithMarker(node),
-              "#".repeat(headerLevel + 1)
-            )
-          );
-        }
-        isSection = true;
-        cls = TOPIC_SECTION;
-      } else {
-        isSection = false;
-        cls = null;
-      }
-    } else {
-      isSection = false;
-      cls = null;
-    }
+    final DitaClass cls = sectionClass(node, header);
+    final boolean isSection = cls != null;
     if (isSection) {
       if (node.getLevel() <= headerLevel) {
         final String heading = headingWithMarker(node);
@@ -707,7 +690,7 @@ public class TopicRenderer extends AbstractRenderer {
       context.renderChildren(node);
       html.endElement(); // title
     } else {
-      if (headerLevel > 0) {
+      if (headerLevel > 0 && !bodyClosed) {
         html.endElement(); // body
       }
       for (; node.getLevel() <= headerLevel; headerLevel--) {
@@ -759,6 +742,161 @@ public class TopicRenderer extends AbstractRenderer {
         }
       }
       html.startElement(node, TOPIC_BODY, BODY_ATTS);
+      bodyClosed = false;
+    }
+  }
+
+  /**
+   * Whether a heading introduces the related links of the current topic. The heading sits one level
+   * below the topic title, carries a related-links title or class, and is followed by a list with
+   * one link per item. Nothing may follow the list in the topic except nested topics, because
+   * related links close the topic body.
+   *
+   * @param header parsed heading title, or {@code null} to parse it here
+   */
+  private boolean isRelatedLinksHeading(final Heading node, final Title header) {
+    if (mditaCoreProfile || mditaExtendedProfile || headerLevel == 0 || node.getLevel() != headerLevel + 1) {
+      return false;
+    }
+    final Title title = header != null
+      ? header
+      : Title.getFromChildren(node.getFirstChild() instanceof AnchorLink ? node.getFirstChild() : node);
+    if (
+      !title.classes.contains("related-links") &&
+      !relatedLinksTitles.contains(stripAttributes(node.getText().toString()).toLowerCase())
+    ) {
+      return false;
+    }
+    if (!(node.getNext() instanceof BulletList)) {
+      return false;
+    }
+    final BulletList list = (BulletList) node.getNext();
+    for (Node item = list.getFirstChild(); item != null; item = item.getNext()) {
+      if (!(item instanceof ListItem) || relatedLink(item) == null) {
+        return false;
+      }
+    }
+    final Node after = list.getNext();
+    if (after == null) {
+      return true;
+    }
+    if (!(after instanceof Heading)) {
+      return false;
+    }
+    final Heading next = (Heading) after;
+    if (next.getLevel() <= headerLevel) {
+      return true;
+    }
+    if (next.getLevel() > headerLevel + 1) {
+      return false;
+    }
+    final Title nextTitle = Title.getFromChildren(
+      next.getFirstChild() instanceof AnchorLink ? next.getFirstChild() : next
+    );
+    return sectionClass(next, nextTitle) == null;
+  }
+
+  /** The only link in a list item, or {@code null} when the item holds anything else. */
+  private static Node relatedLink(final Node item) {
+    if (item.getFirstChild() == null || item.getFirstChild() != item.getLastChild()) {
+      return null;
+    }
+    if (!(item.getFirstChild() instanceof Paragraph)) {
+      return null;
+    }
+    Node link = null;
+    for (Node child = item.getFirstChild().getFirstChild(); child != null; child = child.getNext()) {
+      if (child instanceof Text && child.getChars().isBlank()) {
+        continue;
+      }
+      if (link != null) {
+        return null;
+      }
+      link = child;
+    }
+    if (link instanceof Link) {
+      return link;
+    } else if (link instanceof AutoLink && link.getChars().charAt(0) == '<') {
+      return link;
+    } else if (link instanceof RefNode && ((RefNode) link).getReferenceNode(link.getDocument()) != null) {
+      return link;
+    }
+    return null;
+  }
+
+  /** Close the topic body and write the list as related links. */
+  private void renderRelatedLinks(final BulletList list, final NodeRendererContext context, final SaxWriter html) {
+    html.endElement(); // body
+    bodyClosed = true;
+    html.startElement(list, TOPIC_RELATED_LINKS, RELATED_LINKS_ATTS);
+    for (Node item = list.getFirstChild(); item != null; item = item.getNext()) {
+      final Node link = relatedLink(item);
+      if (link instanceof Link) {
+        html.startElement(link, TOPIC_LINK, getLinkAttributes(((Link) link).getUrl().toString(), LINK_ATTS).build());
+        if (link.hasChildren()) {
+          html.startElement(link, TOPIC_LINKTEXT, LINKTEXT_ATTS);
+          context.renderChildren(link);
+          html.endElement(); // linktext
+        }
+      } else if (link instanceof AutoLink) {
+        html.startElement(
+          link,
+          TOPIC_LINK,
+          getLinkAttributes(((AutoLink) link).getText().toString(), LINK_ATTS).build()
+        );
+      } else {
+        final RefNode ref = (RefNode) link;
+        final Reference refNode = ref.getReferenceNode(ref.getDocument());
+        html.startElement(link, TOPIC_LINK, getLinkAttributes(refNode.getUrl().toString(), LINK_ATTS).build());
+        html.startElement(link, TOPIC_LINKTEXT, LINKTEXT_ATTS);
+        if (!refNode.getTitle().toString().isEmpty()) {
+          html.characters(refNode.getTitle().toString());
+        } else {
+          context.renderChildren(link);
+        }
+        html.endElement(); // linktext
+      }
+      html.endElement(); // link
+    }
+    html.endElement(); // related-links
+  }
+
+  /**
+   * The section class that a heading opens, or {@code null} when the heading opens a topic.
+   *
+   * @throws ParseException if the heading would nest a section
+   */
+  private DitaClass sectionClass(final Heading node, final Title header) {
+    if ((mditaCoreProfile || mditaExtendedProfile) && node.getLevel() == 2) {
+      return TOPIC_SECTION;
+    } else if (!mditaCoreProfile) {
+      final String sectionClassName = containsSome(header.classes, sections.keySet());
+      if (sectionClassName != null) {
+        return sections.get(sectionClassName);
+      } else if (
+        implicitTaskSections && taskSectionTitles.containsKey(node.getText().toString().trim().toLowerCase())
+      ) {
+        return TOPIC_SECTION;
+      } else if (
+        inSectionTopic && node.getLevel() > headerLevel && Collections.disjoint(header.classes, TOPIC_TITLE_TYPES)
+      ) {
+        // The body of a concept or a reference holds sections, so the heading one level below the
+        // topic title opens one. Anything deeper would nest a section, which DITA does not allow.
+        if (node.getLevel() > headerLevel + 1) {
+          throw new ParseException(
+            String.format(
+              MESSAGES.getString("error.nested_section"),
+              headingWithMarker(node),
+              "#".repeat(headerLevel + 1)
+            )
+          );
+        }
+        return TOPIC_SECTION;
+      } else {
+        return null;
+      }
+    } else {
+      return null;
     }
   }
 

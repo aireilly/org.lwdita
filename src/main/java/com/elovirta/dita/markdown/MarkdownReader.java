@@ -260,8 +260,13 @@ public class MarkdownReader implements XMLReader {
   private static final String IMPLICIT_TASK_SECTIONS_PROPERTY_PREFIX =
     "http://lwdita.org/sax/properties/implicit-task-sections/";
 
+  private static final String RELATED_LINKS_TITLES_PROPERTY = "http://lwdita.org/sax/properties/related-links-titles";
+
   @Override
   public Object getProperty(String name) throws SAXNotRecognizedException, SAXNotSupportedException {
+    if (name.equals(RELATED_LINKS_TITLES_PROPERTY)) {
+      return DitaRenderer.RELATED_LINKS_TITLES.get(options);
+    }
     if (name.startsWith(IMPLICIT_TASK_SECTIONS_PROPERTY_PREFIX)) {
       final String sectionName = name.substring(IMPLICIT_TASK_SECTIONS_PROPERTY_PREFIX.length());
       return DitaRenderer.IMPLICIT_TASK_SECTION_TITLES.get(options).get(sectionName);
@@ -278,6 +283,12 @@ public class MarkdownReader implements XMLReader {
       current.put(sectionName, (List<String>) value);
       options.set(DitaRenderer.IMPLICIT_TASK_SECTION_TITLES, Collections.unmodifiableMap(current));
       schemaOverrides.set(DitaRenderer.IMPLICIT_TASK_SECTION_TITLES, Collections.unmodifiableMap(current));
+      return;
+    }
+    if (name.equals(RELATED_LINKS_TITLES_PROPERTY)) {
+      final List<String> titles = List.copyOf((List<String>) value);
+      options.set(DitaRenderer.RELATED_LINKS_TITLES, titles);
+      schemaOverrides.set(DitaRenderer.RELATED_LINKS_TITLES, titles);
       return;
     }
     switch (name) {

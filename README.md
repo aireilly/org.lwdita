@@ -504,6 +504,45 @@ The table becomes a CALS `<table>` inside `<refbody>`. In the MDITA profiles it
 would be a `<simpletable>` instead. An H2 opens a `<section>` in `<refbody>`,
 and `{.example}` an `<example>`.
 
+## Related links
+
+A heading titled `Additional resources` or `Related links`, followed by a list of links, becomes the `<related-links>` element of its topic.
+The heading must be one level below the topic title, for example:
+
+```markdown
+# Installing the CLI {.task}
+
+## Additional resources
+
+- [Configuring the CLI](configuring.md)
+- [CLI options](options.dita)
+- <https://example.com/cli>
+```
+
+The list produces the following related links after the topic body:
+
+```xml
+<related-links>
+  <link href="configuring.md" format="md"><linktext>Configuring the CLI</linktext></link>
+  <link href="options.dita"><linktext>CLI options</linktext></link>
+  <link href="https://example.com/cli" format="html" scope="external"/>
+</related-links>
+```
+
+Each list item must hold one link and nothing else.
+An autolink, such as `<https://example.com/cli>`, produces a `<link>` without `<linktext>`.
+The title match ignores case.
+Related links close the topic body, so only nested topics can follow the list.
+
+If the heading is followed by anything other than such a list, or a section follows the list, the heading is parsed as it would be without this feature.
+This keeps prose under an `Additional resources` heading in the topic.
+
+You can mark a heading with another title as related links with the `related-links` class, for example `## See also {.related-links}`.
+
+You can replace the default titles with `setProperty("http://lwdita.org/sax/properties/related-links-titles", List.of("see also"))`.
+An empty list turns off title matching, and the `related-links` class still applies.
+The MDITA profiles do not produce `<related-links>`.
+
 ## Requirements
 
 | LwDITA plug-in | DITA-OT  | Java |

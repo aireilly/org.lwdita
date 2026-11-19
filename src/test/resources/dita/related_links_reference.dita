@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<reference xmlns:ditaarch="http://dita.oasis-open.org/architecture/2005/" class="- topic/topic reference/reference " ditaarch:DITAArchVersion="2.0" specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product" id="related-links">
+  <title class="- topic/title ">Related links</title>
+  <shortdesc class="- topic/shortdesc ">Short description.</shortdesc>
+  <refbody class="- topic/body reference/refbody "><section class="- topic/section "><p class="- topic/p ">Body.</p></section></refbody>
+  <related-links class="- topic/related-links "><link class="- topic/link " href="other.md" format="md"><linktext class="- topic/linktext ">Other</linktext></link></related-links>
+</reference>

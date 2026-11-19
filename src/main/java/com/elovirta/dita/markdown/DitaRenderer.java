@@ -82,6 +82,12 @@ public class DitaRenderer {
     )
   );
 
+  /** Heading titles that introduce related links when a link list follows them (lowercase). */
+  public static final DataKey<List<String>> RELATED_LINKS_TITLES = new DataKey<>(
+    "RELATED_LINKS_TITLES",
+    List.of("additional resources", "related links")
+  );
+
   //  public static final DataKey<String> SOFT_BREAK = new DataKey<>("SOFT_BREAK", "\n");
   //  public static final DataKey<String> HARD_BREAK = new DataKey<>("HARD_BREAK", "<br />\n");
   //  public static final NullableDataKey<String> STRONG_EMPHASIS_STYLE_HTML_OPEN = new NullableDataKey<>(
