@@ -43,6 +43,8 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.sax.SAXResult;
@@ -53,6 +55,7 @@ import org.dita.dost.util.DitaClass;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
 
 /**
  * A renderer for a set of node types.
@@ -953,6 +956,86 @@ public class TopicRenderer extends AbstractRenderer {
    */
   private void render(final HtmlBlock node, final NodeRendererContext context, final SaxWriter html) {
     final String text = node.getChars().toString();
+    if (isRawRelatedLinks(text)) {
+      renderRawRelatedLinks(node, text, html);
+      return;
+    }
+    final TransformerHandler h = rawDitaHandler(html);
+    final HtmlParser parser = new HtmlParser();
+    parser.setNamePolicy(XmlViolationPolicy.ALLOW);
+    final NamespaceFilter filter = new NamespaceFilter(parser);
+    filter.setContentHandler(h);
+    try {
+      html.setLocation(node);
+      filter.parse(new InputSource(new StringReader(text)));
+    } catch (IOException | SAXException e) {
+      throw new ParseException(String.format(MESSAGES.getString("error.html_parse_fail"), e.getMessage()), e);
+    }
+    html.setDocumentLocator();
+  }
+
+  /** A raw DITA block that holds the related links of the current topic. */
+  private boolean isRawRelatedLinks(final String text) {
+    return (
+      rawDita &&
+      !mditaCoreProfile &&
+      !mditaExtendedProfile &&
+      headerLevel > 0 &&
+      text.stripLeading().startsWith("<" + TOPIC_RELATED_LINKS.localName) &&
+      isWellFormed(wrapXhtml(text))
+    );
+  }
+
+  /**
+   * Write raw related links after the topic body. The block is read as XML, because the HTML parser
+   * treats DITA elements such as link and title as HTML head elements.
+   */
+  private void renderRawRelatedLinks(final HtmlBlock node, final String text, final SaxWriter html) {
+    if (inSection) {
+      html.endElement(); // section or example
+      inSection = false;
+    }
+    if (!bodyClosed) {
+      html.endElement(); // body
+      bodyClosed = true;
+    }
+    final TransformerHandler h = rawDitaHandler(html);
+    try {
+      html.setLocation(node);
+      final XMLReader reader = newXmlReader();
+      reader.setContentHandler(h);
+      reader.parse(new InputSource(new StringReader(wrapXhtml(text))));
+    } catch (IOException | SAXException e) {
+      throw new ParseException(String.format(MESSAGES.getString("error.html_parse_fail"), e.getMessage()), e);
+    }
+    html.setDocumentLocator();
+  }
+
+  private static String wrapXhtml(final String text) {
+    return "<html xmlns=\"http://www.w3.org/1999/xhtml\"><body>" + text + "</body></html>";
+  }
+
+  private static boolean isWellFormed(final String xml) {
+    try {
+      newXmlReader().parse(new InputSource(new StringReader(xml)));
+      return true;
+    } catch (IOException | SAXException e) {
+      return false;
+    }
+  }
+
+  private static XMLReader newXmlReader() throws SAXException {
+    try {
+      final SAXParserFactory factory = SAXParserFactory.newInstance();
+      factory.setNamespaceAware(true);
+      return factory.newSAXParser().getXMLReader();
+    } catch (final ParserConfigurationException e) {
+      throw new SAXException(e);
+    }
+  }
+
+  /** A transformer that turns parsed raw DITA or HTML into DITA, writing to the output. */
+  private TransformerHandler rawDitaHandler(final SaxWriter html) {
     final FragmentContentHandler fragmentFilter = new FragmentContentHandler();
     fragmentFilter.setContentHandler(html);
     final TransformerHandler h;
@@ -965,17 +1048,7 @@ public class TopicRenderer extends AbstractRenderer {
     transformer.setParameter("formats", String.join(",", formats));
     transformer.setParameter("raw-dita", rawDita);
     h.setResult(new SAXResult(fragmentFilter));
-    final HtmlParser parser = new HtmlParser();
-    parser.setNamePolicy(XmlViolationPolicy.ALLOW);
-    final NamespaceFilter filter = new NamespaceFilter(parser);
-    filter.setContentHandler(h);
-    try {
-      html.setLocation(node);
-      filter.parse(new InputSource(new StringReader(text)));
-    } catch (IOException | SAXException e) {
-      throw new ParseException(String.format(MESSAGES.getString("error.html_parse_fail"), e.getMessage()), e);
-    }
-    html.setDocumentLocator();
+    return h;
   }
 
   private static Stream<Entry<String, Entry<DitaClass, Attributes>>> createHtmlToDita(Entry<String, DitaClass> e) {

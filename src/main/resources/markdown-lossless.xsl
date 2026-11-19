@@ -891,6 +891,108 @@
     </xsl:value-of>
   </xsl:function>
 
+  <!-- ============================================================== -->
+  <!-- Related links                                                  -->
+  <!-- ============================================================== -->
+
+  <!-- Related links are an "Additional resources" heading one level below
+       the topic title, followed by a list with one link per item. The
+       Markdown DITA parser reads that back as related-links. Content the
+       list cannot hold is written as raw DITA instead. -->
+  <xsl:template match="*[contains(@class, ' topic/related-links ')]" priority="50">
+    <xsl:variable name="authored" select="*[not(ast:is-generated-link(.))]" as="element()*"/>
+    <xsl:variable name="level" select="count(ancestor::*[contains(@class, ' topic/topic ')]) + 1" as="xs:integer"/>
+    <xsl:choose>
+      <xsl:when test="empty($authored)"/>
+      <xsl:when test="$level le 6 and (every $link in $authored satisfies ast:is-simple-related-link($link))">
+        <header level="{$level}">Additional resources</header>
+        <bulletlist>
+          <xsl:for-each select="$authored">
+            <li>
+              <plain>
+                <xsl:variable name="linktext" select="ast:authored-linktext(.)" as="element()?"/>
+                <xsl:variable name="href" as="xs:string">
+                  <xsl:value-of>
+                    <xsl:apply-templates select="." mode="determine-final-href"/>
+                  </xsl:value-of>
+                </xsl:variable>
+                <xsl:choose>
+                  <xsl:when test="exists($linktext)">
+                    <link href="{$href}">
+                      <xsl:apply-templates select="$linktext/node()"/>
+                    </link>
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <rawinline>
+                      <xsl:value-of select="concat('&lt;', $href, '&gt;')"/>
+                    </rawinline>
+                  </xsl:otherwise>
+                </xsl:choose>
+              </plain>
+            </li>
+          </xsl:for-each>
+        </bulletlist>
+      </xsl:when>
+      <xsl:otherwise>
+        <!-- The start and end tags are lines of their own, so that the parser
+             reads the block as one HTML block. Attribute values escape ">",
+             so the first one ends the start tag. -->
+        <xsl:variable name="raw" select="ast:raw-dita(.)" as="xs:string"/>
+        <xsl:variable name="end-tag" select="concat('&lt;/', name(), '&gt;')" as="xs:string"/>
+        <rawblock>
+          <xsl:value-of select="concat(substring-before($raw, '&gt;'), '&gt;', '&#10;',
+                                       substring-before(substring-after($raw, '&gt;'), $end-tag), '&#10;',
+                                       $end-tag)"/>
+        </rawblock>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- Required links are part of the related links above, not a separate list. -->
+  <xsl:template match="*[contains(@class, ' topic/related-links ')]" mode="prereqs" priority="50"/>
+
+  <!-- Links that preprocessing adds from the map: relationship tables and the
+       map hierarchy. They are not content of the topic. -->
+  <xsl:function name="ast:is-generated-link" as="xs:boolean">
+    <xsl:param name="element" as="element()"/>
+    <xsl:variable name="links" select="$element/descendant-or-self::*[contains(@class, ' topic/link ')]" as="element()*"/>
+    <xsl:sequence select="exists($element/@mapclass) or
+                          (contains($element/@class, ' topic/linkpool ') and exists($links) and
+                           empty($links[empty(@mapclass)]))"/>
+  </xsl:function>
+
+  <!-- Link text the author wrote, not text that preprocessing pulled from the target. -->
+  <xsl:function name="ast:authored-linktext" as="element()?">
+    <xsl:param name="link" as="element()"/>
+    <xsl:sequence select="$link/*[contains(@class, ' topic/linktext ')]
+                                 [not(ast:is-generated(.))]
+                                 [normalize-space() or *]"/>
+  </xsl:function>
+
+  <!-- A link that a list item holds without loss: an href, authored link text
+       or an absolute URI, and attributes that the parser infers from the href. -->
+  <xsl:function name="ast:is-simple-related-link" as="xs:boolean">
+    <xsl:param name="link" as="element()"/>
+    <xsl:variable name="href" select="normalize-space($link/@href)" as="xs:string"/>
+    <xsl:variable name="absolute" select="matches($href, '^[a-zA-Z][a-zA-Z0-9+.\-]{1,31}:[^\s&lt;&gt;]*$')" as="xs:boolean"/>
+    <xsl:variable name="path" select="replace($href, '[?#].*$', '')" as="xs:string"/>
+    <xsl:variable name="extension" as="xs:string"
+                  select="if (matches($path, '\.[^./]+$')) then lower-case(replace($path, '^.*\.([^./]+)$', '$1')) else ''"/>
+    <xsl:sequence select="contains($link/@class, ' topic/link ') and
+                          $href ne '' and
+                          (exists(ast:authored-linktext($link)) or $absolute) and
+                          empty(ast:authored-desc($link)) and
+                          empty($link/@*[not(name() = ('href', 'format', 'scope', 'type', 'class', 'xtrf', 'xtrc'))]) and
+                          (empty($link/@scope) or $link/@scope = 'local' or ($link/@scope = 'external' and $absolute)) and
+                          (empty($link/@format) or $link/@format = ('dita', 'ditamap', $extension) or
+                           ($extension = '' and $link/@format = 'html'))"/>
+  </xsl:function>
+
+  <!-- Raw DITA holds what the author wrote: links from the map and text that
+       preprocessing copied from the target are left out. -->
+  <xsl:template match="*[ast:is-generated-link(.)] | *[ast:is-generated(.)]" mode="lossless-raw-dita" priority="10"/>
+  <xsl:template match="text()[ast:is-generated(.)]" mode="lossless-raw-dita" priority="10"/>
+
   <xsl:template match="*" mode="lossless-raw-dita">
     <xsl:variable name="content" as="node()*"
                   select="node()[self::* and empty(self::*[contains(@class, ' ditaot-d/')]) or self::text()]"/>
@@ -898,7 +1000,21 @@
     <xsl:value-of select="name()"/>
     <xsl:for-each select="@*[namespace-uri() = ('', 'http://www.w3.org/XML/1998/namespace')]
                             [not(name() = ('class', 'xtrf', 'xtrc', 'domains', 'specializations'))]">
-      <xsl:value-of select="concat(' ', name(), '=&quot;', ast:raw-escape(., true()), '&quot;')"/>
+      <!-- A related link points to the converted target, as in a Markdown link. -->
+      <xsl:variable name="value" as="xs:string">
+        <xsl:choose>
+          <xsl:when test="name() = 'href' and contains(../@class, ' topic/link ') and
+                          exists(../ancestor::*[contains(@class, ' topic/related-links ')])">
+            <xsl:value-of>
+              <xsl:apply-templates select=".." mode="determine-final-href"/>
+            </xsl:value-of>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="."/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:variable>
+      <xsl:value-of select="concat(' ', name(), '=&quot;', ast:raw-escape($value, true()), '&quot;')"/>
     </xsl:for-each>
     <xsl:choose>
       <xsl:when test="empty($content[self::* or normalize-space()])">

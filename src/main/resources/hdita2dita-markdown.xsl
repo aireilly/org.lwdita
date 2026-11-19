@@ -13,6 +13,11 @@
     <xsl:apply-templates select="html/body"/>
   </xsl:template>
 
+  <!-- The class map holds the map linktext. A topic link takes the topic one. -->
+  <xsl:template match="related-links//linktext" mode="class">
+    <xsl:attribute name="class">- topic/linktext </xsl:attribute>
+  </xsl:template>
+
   <xsl:template match="h3 | h4 | h5 | h6">
     <title>
       <xsl:apply-templates select="." mode="class"/>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<topic xmlns:ditaarch="http://dita.oasis-open.org/architecture/2005/" class="- topic/topic " ditaarch:DITAArchVersion="2.0" specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product" id="related-links">
+  <title class="- topic/title ">Related links</title>
+  <body class="- topic/body "><p class="- topic/p ">Body.</p></body>
+  <related-links class="- topic/related-links ">
+    <linklist class="- topic/linklist "><title class="- topic/title ">More</title><link class="- topic/link " href="other.dita" role="sibling"><linktext class="- topic/linktext ">Other &amp; more</linktext><desc class="- topic/desc ">Read this.</desc></link></linklist>
+    <link class="- topic/link " href="https://example.com" scope="external" format="html"/>
+  </related-links>
+  <topic class="- topic/topic " ditaarch:DITAArchVersion="2.0" specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product" id="child">
+    <title class="- topic/title ">Child</title>
+    <body class="- topic/body "><p class="- topic/p ">Child body.</p></body>
+  </topic>
+</topic>

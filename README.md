@@ -129,6 +129,7 @@ The following table lists the Markdown DITA syntax for the core elements.
 | Element with `@conref` | Raw DITA, as a block or inline in its text, for example `<p conref="shared.dita#shared/para"/>`. See "References". |
 | `<xref>`, `<link>` to a DITA file that is not part of the conversion | Markdown link with the `@href` as authored, for example `[Text](GUID-1234.dita#topic/element)`. An `<xref>` without text is raw DITA. |
 | `<xref>` within the topic | Markdown link that keeps the topic ID, for example `[Text](#topic/element)` |
+| `<related-links>` | `Additional resources` heading one level below the topic, followed by a list with one link per item. See "Related links". |
 
 Metadata moves to the YAML front matter. This applies to `<prolog>`,
 `<titlealts>`, `<indexterm>`, `<data>` and `<data-about>`. Draft comments and
@@ -542,6 +543,28 @@ You can mark a heading with another title as related links with the `related-lin
 You can replace the default titles with `setProperty("http://lwdita.org/sax/properties/related-links-titles", List.of("see also"))`.
 An empty list turns off title matching, and the `related-links` class still applies.
 The MDITA profiles do not produce `<related-links>`.
+
+### Raw DITA related links
+
+A `<related-links>` element written as raw DITA also becomes the related links of its topic.
+The start tag and the end tag must each be on a line of their own, with the content on the lines between them, for example:
+
+```markdown
+<related-links>
+<linklist><title>More</title><link href="other.md" role="sibling"><linktext>Other</linktext></link></linklist>
+</related-links>
+```
+
+This allows link lists, link descriptions, and link attributes that a Markdown list cannot hold.
+
+### Writing related links with the `markdown` transtype
+
+The `markdown` transtype writes `<related-links>` as an `Additional resources` heading and a list when every link has an `@href`, authored link text or an absolute URI, and no other content.
+Otherwise, for example when the related links hold a `<linklist>`, a `<desc>`, or a `@role` attribute, the transtype writes the whole element as raw DITA.
+A link without link text and with a relative `@href` is also written as raw DITA, because a Markdown autolink requires a URI scheme.
+
+Links that preprocessing adds from the map, such as relationship table links, and text that preprocessing copies from the link target are not written.
+Links to converted topics point to the Markdown file, as in other Markdown links.
 
 ## Requirements
 
