@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?><topic xmlns:ditaarch="http://dita.oasis-open.org/architecture/2005/" class="- topic/topic " ditaarch:DITAArchVersion="2.0" id="related-links" specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product"><title class="- topic/title ">Related links</title><body class="- topic/body "><ul class="- topic/ul "><li class="- topic/li "><p class="- topic/p ">Item</p><related-links class="- topic/related-links ">
+  <link class="- topic/link " format="html" href="https://example.com/" scope="external"/>
+  </related-links></li><li class="- topic/li "><p class="- topic/p ">Item 2</p></li></ul><lq class="- topic/lq "><related-links class="- topic/related-links ">
+&gt; <link class="- topic/link " format="html" href="https://example.com/" scope="external"/>
+&gt; </related-links></lq><p class="- topic/p ">After.</p></body></topic>

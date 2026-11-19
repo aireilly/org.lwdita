@@ -172,6 +172,8 @@ public class TopicRenderer extends AbstractRenderer {
   private boolean inSection = false;
   /** Whether the body of the current topic has been closed by its related links. */
   private boolean bodyClosed = false;
+  /** The list that the current topic's related-links heading has written. */
+  private Node relatedLinksList = null;
   private boolean inTask = false;
   /** Whether the current root topic is a concept or a reference, so that its body holds sections. */
   private boolean inSectionTopic = false;
@@ -467,7 +469,7 @@ public class TopicRenderer extends AbstractRenderer {
   }
 
   private void render(final BulletList node, final NodeRendererContext context, final SaxWriter html) {
-    if (node.getPrevious() instanceof Heading && isRelatedLinksHeading((Heading) node.getPrevious(), null)) {
+    if (node == relatedLinksList) {
       return; // Written by the heading as related links
     }
     Attributes atts = getAttributesFromAttributesNode(node, UL_ATTS);
@@ -755,15 +757,20 @@ public class TopicRenderer extends AbstractRenderer {
    * one link per item. Nothing may follow the list in the topic except nested topics, because
    * related links close the topic body.
    *
-   * @param header parsed heading title, or {@code null} to parse it here
+   * @param header parsed heading title
    */
   private boolean isRelatedLinksHeading(final Heading node, final Title header) {
-    if (mditaCoreProfile || mditaExtendedProfile || headerLevel == 0 || node.getLevel() != headerLevel + 1) {
+    if (
+      mditaCoreProfile ||
+      mditaExtendedProfile ||
+      bodyClosed ||
+      headerLevel == 0 ||
+      node.getLevel() != headerLevel + 1 ||
+      !(node.getParent() instanceof Document)
+    ) {
       return false;
     }
-    final Title title = header != null
-      ? header
-      : Title.getFromChildren(node.getFirstChild() instanceof AnchorLink ? node.getFirstChild() : node);
+    final Title title = header;
     if (
       !title.classes.contains("related-links") &&
       !relatedLinksTitles.contains(stripAttributes(node.getText().toString()).toLowerCase())
@@ -779,7 +786,19 @@ public class TopicRenderer extends AbstractRenderer {
         return false;
       }
     }
-    final Node after = list.getNext();
+    return onlyNestedTopicsFollow(list);
+  }
+
+  /**
+   * Whether nothing but the end of the topic or nested topics follows a node. Related links close
+   * the topic body, so no body content or section can come after them. Footnote and reference
+   * definitions are not content at their position.
+   */
+  private boolean onlyNestedTopicsFollow(final Node node) {
+    Node after = node.getNext();
+    while (after instanceof FootnoteBlock || after instanceof Reference || after instanceof HtmlCommentBlock) {
+      after = after.getNext();
+    }
     if (after == null) {
       return true;
     }
@@ -831,6 +850,7 @@ public class TopicRenderer extends AbstractRenderer {
   private void renderRelatedLinks(final BulletList list, final NodeRendererContext context, final SaxWriter html) {
     html.endElement(); // body
     bodyClosed = true;
+    relatedLinksList = list;
     html.startElement(list, TOPIC_RELATED_LINKS, RELATED_LINKS_ATTS);
     for (Node item = list.getFirstChild(); item != null; item = item.getNext()) {
       final Node link = relatedLink(item);
@@ -956,7 +976,7 @@ public class TopicRenderer extends AbstractRenderer {
    */
   private void render(final HtmlBlock node, final NodeRendererContext context, final SaxWriter html) {
     final String text = node.getChars().toString();
-    if (isRawRelatedLinks(text)) {
+    if (isRawRelatedLinks(node, text)) {
       renderRawRelatedLinks(node, text, html);
       return;
     }
@@ -975,12 +995,15 @@ public class TopicRenderer extends AbstractRenderer {
   }
 
   /** A raw DITA block that holds the related links of the current topic. */
-  private boolean isRawRelatedLinks(final String text) {
+  private boolean isRawRelatedLinks(final HtmlBlock node, final String text) {
     return (
       rawDita &&
       !mditaCoreProfile &&
       !mditaExtendedProfile &&
       headerLevel > 0 &&
+      !bodyClosed &&
+      node.getParent() instanceof Document &&
+      onlyNestedTopicsFollow(node) &&
       text.stripLeading().startsWith("<" + TOPIC_RELATED_LINKS.localName) &&
       isWellFormed(wrapXhtml(text))
     );
@@ -995,10 +1018,8 @@ public class TopicRenderer extends AbstractRenderer {
       html.endElement(); // section or example
       inSection = false;
     }
-    if (!bodyClosed) {
-      html.endElement(); // body
-      bodyClosed = true;
-    }
+    html.endElement(); // body
+    bodyClosed = true;
     final TransformerHandler h = rawDitaHandler(html);
     try {
       html.setLocation(node);

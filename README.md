@@ -556,6 +556,8 @@ The start tag and the end tag must each be on a line of their own, with the cont
 ```
 
 This allows link lists, link descriptions, and link attributes that a Markdown list cannot hold.
+The block must be at the top level of the topic, and only nested topics can follow it.
+Elsewhere, for example inside a list item, the block stays where it is.
 
 ### Writing related links with the `markdown` transtype
 

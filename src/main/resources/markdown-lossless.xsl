@@ -94,8 +94,12 @@
   <xsl:template match="pandoc" mode="lossless-heal">
     <xsl:param name="source" as="document-node()" tunnel="yes"/>
     <xsl:variable name="ast" select="." as="element()"/>
+    <!-- Raw DITA escapes characters as references, such as &#10; for a line
+         break. A reference stands for punctuation or spacing, not for its letters. -->
     <xsl:variable name="have" as="xs:string"
-                  select="ast:squeeze(string-join((.//text(), .//@*), ''))"/>
+                  select="ast:squeeze(string-join((.//text()[empty(ancestor::rawblock | ancestor::rawinline)],
+                                                   (.//rawblock | .//rawinline)/replace(string(.), '&amp;(#[0-9]+|#x[0-9a-fA-F]+|[a-zA-Z]+);', ' '),
+                                                   .//@*), ''))"/>
     <xsl:variable name="missing" as="text()*"
                   select="if ($markdown.heal = 'yes')
                           then $source//text()[normalize-space()]
