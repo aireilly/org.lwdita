@@ -156,7 +156,9 @@
   <xsl:template match="@* | node()" mode="lossless-merge">
     <xsl:copy>
       <xsl:apply-templates select="@*" mode="#current"/>
-      <xsl:for-each-group select="node()" group-adjacent="if (self::strong) then 1 else if (self::emph) then 2 else 0">
+      <!-- A run with an attribute block keeps its own delimiters. -->
+      <xsl:for-each-group select="node()" group-adjacent="if (@md-id or @md-class) then 0
+                                                          else if (self::strong) then 1 else if (self::emph) then 2 else 0">
         <xsl:choose>
           <xsl:when test="current-grouping-key() ne 0 and count(current-group()) gt 1">
             <xsl:element name="{name(current-group()[1])}">
@@ -896,6 +898,213 @@
   </xsl:function>
 
   <!-- ============================================================== -->
+  <!-- Markup that Markdown has no syntax for                         -->
+  <!-- ============================================================== -->
+
+  <!-- The Markdown form of these elements reads back as another element or
+       drops an attribute. They are written as raw DITA, or, where the
+       Markdown DITA parser reads an attribute block, as Markdown with
+       "{#id .class}" after it. -->
+
+  <xsl:function name="ast:has-class" as="xs:boolean">
+    <xsl:param name="element" as="element()"/>
+    <xsl:param name="tokens" as="xs:string+"/>
+    <xsl:sequence select="some $token in $tokens satisfies contains($element/@class, concat(' ', $token, ' '))"/>
+  </xsl:function>
+
+  <!-- The element is the DITA base element, not a specialization of it. -->
+  <xsl:function name="ast:is-unspecialized" as="xs:boolean">
+    <xsl:param name="element" as="element()"/>
+    <xsl:param name="tokens" as="xs:string+"/>
+    <xsl:sequence select="tokenize(normalize-space($element/@class), ' ')[last()] = $tokens"/>
+  </xsl:function>
+
+  <!-- Attributes that no Markdown syntax holds. -->
+  <xsl:function name="ast:has-kept-attribute" as="xs:boolean">
+    <xsl:param name="element" as="element()"/>
+    <xsl:sequence select="normalize-space($element/@id) ne '' or normalize-space($element/@outputclass) ne ''"/>
+  </xsl:function>
+
+  <!-- Raw DITA cannot appear in code, and syntax diagrams have their own notation. -->
+  <xsl:function name="ast:in-code" as="xs:boolean">
+    <xsl:param name="element" as="element()"/>
+    <xsl:sequence select="exists($element/ancestor::*[ast:has-class(., ('topic/pre', 'pr-d/syntaxdiagram')) or
+                                                      (ast:has-class(., 'pr-d/codeph') and empty(*))])"/>
+  </xsl:function>
+
+  <!-- Phrases whose Markdown form reads back as another element: domain
+       phrases such as uicontrol and filepath become b and codeph, term and
+       cite become i and b. A code span holds text only, so codeph with
+       markup in it is raw too. Domain option is not raw: a line that opens
+       with <option> starts an HTML block. -->
+  <xsl:function name="ast:is-semantic-phrase" as="xs:boolean">
+    <xsl:param name="element" as="element()"/>
+    <xsl:sequence select="ast:has-class($element, ('topic/ph', 'topic/keyword', 'topic/term', 'topic/cite', 'topic/q', 'topic/tm')) and
+                          not(ast:has-class($element, ('task/cmd', 'pr-d/option', 'hi-d/b', 'hi-d/i', 'hi-d/u', 'hi-d/sup',
+                                                       'hi-d/sub', 'hi-d/line-through', 'pr-d/codeph'))) and
+                          (ast:has-class($element, ('hi-d/tt', 'hi-d/overline')) or
+                           matches($element/@class, ' (ui|sw|pr|markup|xml)-d/') or
+                           ast:is-unspecialized($element, ('topic/keyword', 'topic/term', 'topic/cite', 'topic/q', 'topic/tm')))
+                          or
+                          (ast:has-class($element, 'pr-d/codeph') and exists($element/*))"/>
+  </xsl:function>
+
+  <!-- A phrase that carries @id, @outputclass or @keyref. Highlighting and
+       code phrases take an attribute block instead, when the values fit one. -->
+  <xsl:function name="ast:is-attributed-phrase" as="xs:boolean">
+    <xsl:param name="element" as="element()"/>
+    <xsl:sequence select="ast:has-class($element, ('topic/ph', 'topic/keyword', 'topic/term', 'topic/cite', 'topic/q',
+                                                   'topic/tm', 'topic/text')) and
+                          not(ast:has-class($element, ('task/cmd', 'pr-d/option'))) and
+                          (ast:has-kept-attribute($element) or normalize-space($element/@keyref) ne '') and
+                          not(ast:takes-attribute-block($element))"/>
+  </xsl:function>
+
+  <xsl:function name="ast:is-raw-phrase" as="xs:boolean">
+    <xsl:param name="element" as="element()"/>
+    <xsl:sequence select="(ast:is-semantic-phrase($element) or ast:is-attributed-phrase($element)) and
+                          not(ast:in-code($element))"/>
+  </xsl:function>
+
+  <!-- An attribute block holds an ID and classes that are plain names. -->
+  <xsl:function name="ast:fits-attribute-block" as="xs:boolean">
+    <xsl:param name="element" as="element()"/>
+    <xsl:variable name="classes" select="tokenize(normalize-space($element/@outputclass), ' ')" as="xs:string*"/>
+    <xsl:sequence select="(normalize-space($element/@id) eq '' or matches($element/@id, '^[A-Za-z_][A-Za-z0-9_\-]*$')) and
+                          count($classes) eq count(ast:classes($element))"/>
+  </xsl:function>
+
+  <!-- Paragraphs, bold, italic and code phrases that the parser reads with
+       an attribute block. A table cell has no line for the block of a
+       paragraph, so a paragraph there keeps losing its attributes. -->
+  <xsl:function name="ast:takes-attribute-block" as="xs:boolean">
+    <xsl:param name="element" as="element()"/>
+    <xsl:sequence select="ast:has-kept-attribute($element) and
+                          normalize-space($element/@keyref) eq '' and
+                          ast:fits-attribute-block($element) and
+                          not(ast:in-code($element)) and
+                          (ast:has-class($element, ('hi-d/b', 'hi-d/i')) or
+                           (ast:has-class($element, 'pr-d/codeph') and empty($element/*)) or
+                           (ast:is-unspecialized($element, 'topic/p') and
+                            not(ast:has-block-content($element)) and
+                            not(ast:is-only-block-in-item($element)) and
+                            empty($element/ancestor::*[ast:has-class(., ('topic/entry', 'topic/stentry'))])))"/>
+  </xsl:function>
+
+  <!-- A list item with one paragraph is a tight item in Markdown, which
+       the parser reads without the paragraph or its attribute block. -->
+  <xsl:function name="ast:is-only-block-in-item" as="xs:boolean">
+    <xsl:param name="element" as="element()"/>
+    <xsl:sequence select="ast:has-class($element/.., 'topic/li') and count($element/../*) eq 1 and
+                          not($element/../text()[normalize-space()])"/>
+  </xsl:function>
+
+  <!-- The base transform writes a paragraph with these in it as a division. -->
+  <xsl:function name="ast:has-block-content" as="xs:boolean">
+    <xsl:param name="element" as="element()"/>
+    <xsl:sequence select="exists($element/descendant::*[ast:has-class(., ('topic/pre', 'topic/ul', 'topic/sl', 'topic/ol', 'topic/lq',
+                                                                          'topic/dl', 'topic/note', 'topic/lines', 'topic/fig',
+                                                                          'topic/table', 'topic/simpletable'))])"/>
+  </xsl:function>
+
+  <!-- Blocks that are raw DITA when an attribute would otherwise be lost.
+       A list item or simple table part cannot be raw on its own, so its
+       list or table is. -->
+  <xsl:function name="ast:is-raw-block" as="xs:boolean">
+    <xsl:param name="element" as="element()"/>
+    <xsl:sequence select="ast:is-unspecialized($element, ('topic/p', 'topic/note', 'topic/lq', 'topic/fig', 'topic/div',
+                                                          'topic/bodydiv', 'topic/sectiondiv', 'topic/ul',
+                                                          'topic/ol', 'topic/sl', 'topic/simpletable')) and
+                          (ast:has-kept-attribute($element) or
+                           exists($element/*[ast:has-class(., ('topic/li', 'topic/sli'))][ast:has-kept-attribute(.)]) or
+                           exists($element/*[ast:has-class(., ('topic/sthead', 'topic/strow'))]/descendant-or-self::*
+                                     [ast:has-class(., ('topic/sthead', 'topic/strow', 'topic/stentry'))]
+                                     [ast:has-kept-attribute(.)])) and
+                          not(ast:takes-attribute-block($element)) and
+                          not(ast:in-code($element)) and
+                          empty($element/ancestor::*[ast:has-class(., ('topic/entry', 'topic/stentry'))]) and
+                          ast:is-html-safe($element)"/>
+  </xsl:function>
+
+  <!-- The parser reads a raw block with an HTML5 parser, which changes these:
+       table content moves out of <table>, image becomes img, area, param,
+       source and track are empty elements, title holds text only, dl gets a
+       second dlentry, and a nested list, paragraph or division closes <p>. -->
+  <xsl:function name="ast:is-html-safe" as="xs:boolean">
+    <xsl:param name="element" as="element()"/>
+    <xsl:sequence select="empty($element/descendant-or-self::*[local-name() = ('table', 'image', 'area', 'param', 'source', 'track', 'dl')]) and
+                          empty($element/descendant-or-self::*[local-name() = 'title'][*]) and
+                          empty($element/descendant-or-self::*[local-name() = 'p']
+                                  /descendant::*[local-name() = ('p', 'ul', 'ol', 'dl', 'div', 'pre', 'section', 'table', 'summary')])"/>
+  </xsl:function>
+
+  <!-- The start and end tags only. The content between them is Markdown,
+       which the parser reads inside inline HTML. A pipe ends a table cell
+       even inside a tag, so attribute values write it as a reference. -->
+  <xsl:template match="*[ast:is-raw-phrase(.)]" priority="55">
+    <rawinline>
+      <xsl:value-of select="replace(ast:raw-start-tag(.), '\|', '&amp;#124;')"/>
+    </rawinline>
+    <xsl:apply-templates/>
+    <rawinline>
+      <xsl:value-of select="ast:raw-end-tag(.)"/>
+    </rawinline>
+  </xsl:template>
+
+  <!-- The start and end tags are lines of their own, which makes the block
+       an HTML block whatever the element name. The content is one line, so
+       no blank line ends the block early. The line breaks around the content
+       become whitespace in the element, so lines and other preformatted
+       elements are never the outer element of a raw block. -->
+  <xsl:template match="*[ast:is-raw-block(.)]" priority="55">
+    <xsl:variable name="content" as="xs:string">
+      <xsl:value-of>
+        <xsl:apply-templates select="node()" mode="lossless-raw-dita">
+          <xsl:with-param name="raw-html" select="true()" tunnel="yes"/>
+        </xsl:apply-templates>
+      </xsl:value-of>
+    </xsl:variable>
+    <rawblock>
+      <xsl:value-of select="string-join((ast:raw-start-tag(.), replace($content, '^\s+|\s+$', '')[. ne ''], ast:raw-end-tag(.)), '&#10;')"/>
+    </rawblock>
+  </xsl:template>
+
+  <!-- The Markdown form, with the attributes for an attribute block. -->
+  <xsl:template match="*[ast:takes-attribute-block(.)]" priority="55">
+    <xsl:variable name="ast" as="node()*">
+      <xsl:next-match/>
+    </xsl:variable>
+    <xsl:variable name="source" select="." as="element()"/>
+    <xsl:variable name="element" select="$ast/self::*" as="element()*"/>
+    <xsl:choose>
+      <xsl:when test="count($element) eq 1 and $element/self::*[self::para | self::strong | self::emph | self::code]">
+        <xsl:for-each select="$ast">
+          <xsl:choose>
+            <xsl:when test=". is $element">
+              <xsl:copy>
+                <xsl:copy-of select="@*"/>
+                <xsl:if test="normalize-space($source/@id)">
+                  <xsl:attribute name="md-id" select="normalize-space($source/@id)"/>
+                </xsl:if>
+                <xsl:if test="normalize-space($source/@outputclass)">
+                  <xsl:attribute name="md-class" select="normalize-space($source/@outputclass)"/>
+                </xsl:if>
+                <xsl:copy-of select="node()"/>
+              </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:copy-of select="."/>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:for-each>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:sequence select="$ast"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- ============================================================== -->
   <!-- Related links                                                  -->
   <!-- ============================================================== -->
 
@@ -997,43 +1206,75 @@
   <xsl:template match="*[ast:is-generated-link(.)] | *[ast:is-generated(.)]" mode="lossless-raw-dita" priority="10"/>
   <xsl:template match="text()[ast:is-generated(.)]" mode="lossless-raw-dita" priority="10"/>
 
+  <!-- With raw-html, the markup is read by an HTML5 parser, which ignores
+       "/>" on an element that is not empty in HTML. Every element gets an
+       end tag, and whitespace that DITA does not keep is collapsed. -->
   <xsl:template match="*" mode="lossless-raw-dita">
+    <xsl:param name="raw-html" select="false()" as="xs:boolean" tunnel="yes"/>
     <xsl:variable name="content" as="node()*"
                   select="node()[self::* and empty(self::*[contains(@class, ' ditaot-d/')]) or self::text()]"/>
-    <xsl:text>&lt;</xsl:text>
-    <xsl:value-of select="name()"/>
-    <xsl:for-each select="@*[namespace-uri() = ('', 'http://www.w3.org/XML/1998/namespace')]
-                            [not(name() = ('class', 'xtrf', 'xtrc', 'domains', 'specializations'))]">
-      <!-- A related link points to the converted target, as in a Markdown link. -->
-      <xsl:variable name="value" as="xs:string">
-        <xsl:choose>
-          <xsl:when test="name() = 'href' and contains(../@class, ' topic/link ') and
-                          exists(../ancestor::*[contains(@class, ' topic/related-links ')])">
-            <xsl:value-of>
-              <xsl:apply-templates select=".." mode="determine-final-href"/>
-            </xsl:value-of>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:value-of select="."/>
-          </xsl:otherwise>
-        </xsl:choose>
-      </xsl:variable>
-      <xsl:value-of select="concat(' ', name(), '=&quot;', ast:raw-escape($value, true()), '&quot;')"/>
-    </xsl:for-each>
+    <xsl:variable name="start" select="ast:raw-start-tag(.)" as="xs:string"/>
     <xsl:choose>
-      <xsl:when test="empty($content[self::* or normalize-space()])">
-        <xsl:text>/&gt;</xsl:text>
+      <xsl:when test="not($raw-html) and empty($content[self::* or normalize-space()])">
+        <xsl:value-of select="concat(substring($start, 1, string-length($start) - 1), '/&gt;')"/>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:text>&gt;</xsl:text>
+        <xsl:value-of select="$start"/>
         <xsl:apply-templates select="$content" mode="lossless-raw-dita"/>
-        <xsl:value-of select="concat('&lt;/', name(), '&gt;')"/>
+        <xsl:value-of select="ast:raw-end-tag(.)"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
 
+  <xsl:function name="ast:raw-start-tag" as="xs:string">
+    <xsl:param name="element" as="element()"/>
+    <xsl:value-of>
+      <xsl:text>&lt;</xsl:text>
+      <xsl:value-of select="name($element)"/>
+      <xsl:for-each select="$element/@*[namespace-uri() = ('', 'http://www.w3.org/XML/1998/namespace')]
+                                       [not(name() = ('class', 'xtrf', 'xtrc', 'domains', 'specializations'))]">
+        <!-- A related link or cross reference points to the converted target, as in a Markdown link. -->
+        <xsl:variable name="value" as="xs:string">
+          <xsl:choose>
+            <xsl:when test="name() = 'href' and
+                            (contains(../@class, ' topic/xref ') or
+                             (contains(../@class, ' topic/link ') and
+                              exists(../ancestor::*[contains(@class, ' topic/related-links ')])))">
+              <xsl:value-of>
+                <xsl:apply-templates select=".." mode="determine-final-href"/>
+              </xsl:value-of>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="."/>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
+        <xsl:value-of select="concat(' ', name(), '=&quot;', ast:raw-escape($value, true()), '&quot;')"/>
+      </xsl:for-each>
+      <xsl:text>&gt;</xsl:text>
+    </xsl:value-of>
+  </xsl:function>
+
+  <xsl:function name="ast:raw-end-tag" as="xs:string">
+    <xsl:param name="element" as="element()"/>
+    <xsl:sequence select="concat('&lt;/', name($element), '&gt;')"/>
+  </xsl:function>
+
   <xsl:template match="text()" mode="lossless-raw-dita">
-    <xsl:value-of select="ast:raw-escape(., false())"/>
+    <xsl:param name="raw-html" select="false()" as="xs:boolean" tunnel="yes"/>
+    <xsl:choose>
+      <xsl:when test="not($raw-html) or
+                      exists(ancestor::*[ast:has-class(., ('topic/pre', 'topic/lines')) or @xml:space = 'preserve'])">
+        <xsl:value-of select="ast:raw-escape(., false())"/>
+      </xsl:when>
+      <!-- Whitespace between the items of a list or the rows of a table. -->
+      <xsl:when test="not(normalize-space()) and
+                      ast:has-class(.., ('topic/ul', 'topic/ol', 'topic/sl', 'topic/simpletable', 'topic/sthead',
+                                         'topic/strow', 'topic/fig'))"/>
+      <xsl:otherwise>
+        <xsl:value-of select="replace(ast:raw-escape(., false()), '\s+', ' ')"/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:function name="ast:raw-escape" as="xs:string">

@@ -135,6 +135,61 @@
     </xsl:call-template>
   </xsl:template>
 
+  <!-- Attribute blocks: "{#id .class}" after a paragraph, on a line of its
+       own, or right after an inline element. -->
+
+  <xsl:function name="ast:attribute-block" as="xs:string">
+    <xsl:param name="node" as="element()"/>
+    <xsl:sequence select="concat('{', string-join((for $id in $node/@md-id return concat('#', $id),
+                                                   for $c in tokenize($node/@md-class, '\s+')[. ne ''] return concat('.', $c)), ' '), '}')"/>
+  </xsl:function>
+
+  <!-- The lead of a line that continues a block. The first block of a list
+       item or definition is written with no indent, after the marker, but
+       its later lines need the indent of the item content, or the parser
+       does not read them as part of the item. -->
+  <xsl:function name="ast:continuation-lead" as="xs:string">
+    <xsl:param name="node" as="element()"/>
+    <xsl:param name="indent" as="xs:string"/>
+    <xsl:param name="prefix" as="xs:string?"/>
+    <xsl:variable name="admonition" select="$node/ancestor::admonition[1]"/>
+    <xsl:sequence select="if (empty($node/preceding-sibling::*) and ($node/parent::li or $node/parent::dd))
+                          then concat($prefix, ast:repeat($default-indent,
+                                 count($node/ancestor::*[self::li or self::dd]
+                                                        [empty($admonition) or ancestor::admonition[1] is $admonition])))
+                          else concat($indent, $prefix)"/>
+  </xsl:function>
+
+  <xsl:template match="para[@md-id or @md-class]" mode="ast">
+    <xsl:param name="indent" tunnel="yes" as="xs:string" select="''"/>
+    <xsl:param name="prefix" tunnel="yes" as="xs:string?" select="()"/>
+    <xsl:call-template name="process-inline-contents"/>
+    <xsl:value-of select="$linefeed"/>
+    <xsl:value-of select="concat(ast:continuation-lead(., $indent, $prefix), ast:attribute-block(.))"/>
+    <xsl:value-of select="$linefeed"/>
+    <xsl:value-of select="$linefeed"/>
+  </xsl:template>
+
+  <!-- The block goes before whitespace that the emphasis left outside its delimiters. -->
+  <xsl:template match="strong[@md-id or @md-class] | emph[@md-id or @md-class] | code[@md-id or @md-class]" mode="ast" priority="10">
+    <xsl:variable name="markdown" as="xs:string">
+      <xsl:value-of>
+        <xsl:next-match/>
+      </xsl:value-of>
+    </xsl:variable>
+    <xsl:choose>
+      <xsl:when test="normalize-space($markdown)">
+        <xsl:variable name="trailing" select="if (matches($markdown, '\s$')) then replace($markdown, '^.*?(\s+)$', '$1', 's') else ''"/>
+        <xsl:value-of select="substring($markdown, 1, string-length($markdown) - string-length($trailing))"/>
+        <xsl:value-of select="ast:attribute-block(.)"/>
+        <xsl:value-of select="$trailing"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$markdown"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <!-- Admonitions. The syntax comes from a style: a template in the
        lossless-admonition mode that matches the value of this parameter.
        admonition-mkdocs.xsl is the built-in one and describes the contract. -->
@@ -702,16 +757,25 @@
     </xsl:for-each>
   </xsl:template>
 
-  <!-- Raw DITA, written as it is. A block is a line of its own. -->
+  <!-- Raw DITA, written as it is. Every line of a block gets the indent
+       and prefix of its container, or the block ends there. -->
   <xsl:template match="rawblock" mode="ast">
     <xsl:param name="indent" tunnel="yes" as="xs:string" select="''"/>
     <xsl:param name="prefix" tunnel="yes" as="xs:string?" select="()"/>
-    <xsl:value-of select="concat($indent, $prefix, string(.))"/>
-    <xsl:value-of select="$linefeed"/>
+    <xsl:variable name="lead" select="ast:continuation-lead(., $indent, $prefix)" as="xs:string"/>
+    <xsl:for-each select="tokenize(string(.), '\n')">
+      <xsl:value-of select="concat(if (position() eq 1) then concat($indent, $prefix) else $lead, .)"/>
+      <xsl:value-of select="$linefeed"/>
+    </xsl:for-each>
     <xsl:value-of select="$linefeed"/>
   </xsl:template>
 
   <xsl:template match="rawinline" mode="ast">
+    <xsl:value-of select="string(.)"/>
+  </xsl:template>
+
+  <!-- In an HTML table, raw DITA is markup already. -->
+  <xsl:template match="rawblock | rawinline" mode="ast-html">
     <xsl:value-of select="string(.)"/>
   </xsl:template>
 

@@ -1,0 +1,71 @@
+<topic xmlns:ditaarch="http://dita.oasis-open.org/architecture/2005/" class="- topic/topic "
+  specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product"
+  id="raw-dita" ditaarch:DITAArchVersion="2.0">
+  <title class="- topic/title ">Click <uicontrol class="+ topic/ph ui-d/uicontrol ">Save</uicontrol></title>
+  <body class="- topic/body ">
+    <section class="- topic/section ">
+      <title class="- topic/title ">Domain phrases</title>
+      <p class="- topic/p ">Click <uicontrol class="+ topic/ph ui-d/uicontrol ">File</uicontrol>, then <menucascade class="+ topic/ph ui-d/menucascade "><uicontrol class="+ topic/ph ui-d/uicontrol ">Edit</uicontrol><uicontrol class="+ topic/ph ui-d/uicontrol ">Preferences</uicontrol></menucascade>.</p>
+      <p class="- topic/p ">Edit <filepath class="+ topic/ph sw-d/filepath ">/etc/*.conf</filepath> and set <varname class="+ topic/keyword sw-d/varname ">my_var_name</varname>.</p>
+      <p class="- topic/p ">Run <cmdname class="+ topic/keyword sw-d/cmdname ">grep</cmdname>, type <userinput class="+ topic/ph sw-d/userinput ">yes</userinput>, and read <systemoutput class="+ topic/ph sw-d/systemoutput ">OK</systemoutput>.</p>
+      <p class="- topic/p ">Call <apiname class="+ topic/keyword pr-d/apiname ">getValue()</apiname> in <xmlelement class="+ topic/keyword markup-d/markupname xml-d/xmlelement ">codeblock</xmlelement> with <codeph class="+ topic/ph pr-d/codeph ">run <varname class="+ topic/keyword sw-d/varname ">target</varname></codeph>.</p>
+      <p class="- topic/p ">A <term class="- topic/term ">term</term>, a <cite class="- topic/cite ">Book</cite>, a <q class="- topic/q ">quote</q>, a <keyword class="- topic/keyword ">keyword</keyword>, <tm class="- topic/tm " tmtype="reg">Acme</tm>, and <tt class="+ topic/ph hi-d/tt ">teletype</tt>.</p>
+    </section>
+    <section class="- topic/section ">
+      <title class="- topic/title ">Attributes</title>
+      <p class="- topic/p " id="para-id">A paragraph with an ID.</p>
+      <p class="- topic/p " outputclass="draft wide">A paragraph with classes.</p>
+      <p class="- topic/p " id="p.dotted">An ID that no attribute block holds.</p>
+      <p class="- topic/p ">Inline <b class="+ topic/ph hi-d/b " id="bold-id">bold</b>, <i class="+ topic/ph hi-d/i " outputclass="em">italic</i> and <codeph class="+ topic/ph pr-d/codeph " id="code-id">code</codeph>.</p>
+      <p class="- topic/p ">Install <keyword class="- topic/keyword " keyref="product"/> or <ph class="- topic/ph " keyref="product">the product</ph> with <ph class="- topic/ph " id="ph-id">a phrase</ph>.</p>
+      <ul class="- topic/ul ">
+        <li class="- topic/li "><p class="- topic/p " id="li-para">A list paragraph.</p></li>
+      </ul>
+      <lq class="- topic/lq "><p class="- topic/p " id="lq-para">A quoted paragraph.</p></lq>
+    </section>
+    <section class="- topic/section ">
+      <title class="- topic/title ">Raw blocks</title>
+      <note class="- topic/note " type="warning" id="note-id"><p class="- topic/p ">Install <keyword class="- topic/keyword " keyref="k"/> first, see <xref class="- topic/xref " href="other.dita">Other</xref>.</p><codeblock class="+ topic/pre pr-d/codeblock " xml:space="preserve">first
+
+third</codeblock></note>
+      <lq class="- topic/lq " id="lq-id"><p class="- topic/p ">Quoted.</p></lq>
+      <ul class="- topic/ul ">
+        <li class="- topic/li " id="java">Install Java.</li>
+        <li class="- topic/li ">Install Maven.</li>
+      </ul>
+      <ol class="- topic/ol " outputclass="steps">
+        <li class="- topic/li ">One.</li>
+        <li class="- topic/li ">Two.</li>
+      </ol>
+      <sl class="- topic/sl ">
+        <sli class="- topic/sli " id="sli-id">Simple.</sli>
+      </sl>
+      <simpletable class="- topic/simpletable ">
+        <sthead class="- topic/sthead "><stentry class="- topic/stentry ">Head</stentry></sthead>
+        <strow class="- topic/strow " id="row-id"><stentry class="- topic/stentry ">Cell</stentry></strow>
+      </simpletable>
+      <fig class="- topic/fig " id="fig-id"><title class="- topic/title ">Figure</title><p class="- topic/p ">Figure body.</p></fig>
+      <div class="- topic/div " outputclass="box"><p class="- topic/p ">In a division.</p></div>
+    </section>
+    <section class="- topic/section ">
+      <title class="- topic/title ">Raw blocks in containers</title>
+      <ul class="- topic/ul ">
+        <li class="- topic/li "><p class="- topic/p ">Item.</p><note class="- topic/note " id="li-note"><p class="- topic/p ">In a list.</p></note></li>
+      </ul>
+      <note class="- topic/note " type="tip"><p class="- topic/p " id="adm-para">In an admonition.</p><ul class="- topic/ul "><li class="- topic/li " id="adm-li">Admonition item.</li></ul></note>
+      <lq class="- topic/lq "><note class="- topic/note " id="lq-note"><p class="- topic/p ">In a quote.</p></note></lq>
+      <table class="- topic/table ">
+        <tgroup class="- topic/tgroup " cols="2">
+          <colspec class="- topic/colspec " colname="col1"/>
+          <colspec class="- topic/colspec " colname="col2"/>
+          <thead class="- topic/thead ">
+            <row class="- topic/row "><entry class="- topic/entry ">Action</entry><entry class="- topic/entry ">Value</entry></row>
+          </thead>
+          <tbody class="- topic/tbody ">
+            <row class="- topic/row "><entry class="- topic/entry ">Pick <uicontrol class="+ topic/ph ui-d/uicontrol ">OK</uicontrol></entry><entry class="- topic/entry "><ph class="- topic/ph " outputclass="a|b">Piped</ph></entry></row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+  </body>
+</topic>

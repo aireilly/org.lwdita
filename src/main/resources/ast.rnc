@@ -1,6 +1,6 @@
 pandoc = element pandoc { head, block* }
 plain = element plain { inline* }
-para = element para { inline* }
+para = element para { mdattr, inline* }
 codeblock =
   element codeblock {
     attr,
@@ -52,16 +52,16 @@ table =
 \div = element div { attr, block* }
 footnoteblock = element footnoteblock { inline* }
 
-strong = element strong { inline* }
+strong = element strong { mdattr, inline* }
 str = element str { text }
-emph = element emph { inline* }
+emph = element emph { mdattr, inline* }
 strikeout = element strikeout { inline* }
 superscript = element superscript { inline* }
 subscript = element subscript { inline* }
 smallcaps = element smallcaps { inline* }
 quoted = element quoted { inline* }
 cite = element cite { inline* }
-code = element code { attr, inline* }
+code = element code { attr, mdattr, inline* }
 link =
   element link {
     attribute href { text }?,
@@ -78,13 +78,18 @@ image =
   }
 span = element span { inline* }
 footnote = element footnote { text }
+rawinline = element rawinline { text }
 
 attr =
   attribute id { text }?,
   attribute class { text }?,
   attribute key-value { text }?
+# ID and classes written as a Markdown attribute block
+mdattr =
+  attribute md-id { text }?,
+  attribute md-class { text }?
 block = para | plain | codeblock | rawblock | blockquote | orderedlist | bulletlist | definitionlist | header | table | \div | footnoteblock
-inline = text | emph | strong | strikeout | superscript | subscript | smallcaps | quoted | cite | code | link | image | span | footnote
+inline = text | emph | strong | strikeout | superscript | subscript | smallcaps | quoted | cite | code | link | image | span | footnote | rawinline
 
 head = element head {
   yamlValue*

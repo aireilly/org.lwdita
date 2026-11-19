@@ -1,0 +1,21 @@
+<topic xmlns:ditaarch="http://dita.oasis-open.org/architecture/2005/" class="- topic/topic "
+  specializations="@props/audience @props/deliveryTarget @props/otherprops @props/platform @props/product"
+  id="raw-dita-fallback" ditaarch:DITAArchVersion="2.0">
+  <title class="- topic/title ">Raw DITA fallback</title>
+  <body class="- topic/body ">
+    <p class="- topic/p ">Set <option class="+ topic/keyword pr-d/option ">-v</option> for more output.</p>
+    <p class="- topic/p " id="with-list">Intro<ul class="- topic/ul "><li class="- topic/li ">Item</li></ul></p>
+    <dl class="- topic/dl "><dlentry class="- topic/dlentry " id="term-a"><dt class="- topic/dt ">A</dt><dd class="- topic/dd ">First letter.</dd></dlentry></dl>
+    <fig class="- topic/fig " id="fig1"><image class="- topic/image " href="a.png"/></fig>
+    <lines class="- topic/lines " id="lines1" xml:space="preserve">First line
+Second line</lines>
+    <codeblock class="+ topic/pre pr-d/codeblock " id="code1" xml:space="preserve">echo <varname class="+ topic/keyword sw-d/varname ">NAME</varname></codeblock>
+    <table class="- topic/table ">
+      <tgroup class="- topic/tgroup " cols="1">
+        <tbody class="- topic/tbody ">
+          <row class="- topic/row "><entry class="- topic/entry "><p class="- topic/p " id="in-cell">Cell</p><p class="- topic/p ">Second paragraph.</p></entry></row>
+        </tbody>
+      </tgroup>
+    </table>
+  </body>
+</topic>
